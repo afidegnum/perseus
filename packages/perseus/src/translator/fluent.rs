@@ -2,7 +2,7 @@ use crate::{reactor::Reactor, translator::errors::*, PerseusNodeType};
 use fluent_bundle::{bundle::FluentBundle, FluentArgs, FluentResource};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use std::sync::Arc;
-use sycamore::prelude::{use_context, Scope};
+use sycamore::prelude::use_context;
 use unic_langid::{LanguageIdentifier, LanguageIdentifierError};
 
 /// The file extension used by the Fluent translator, which expects FTL files.
@@ -195,26 +195,26 @@ pub type TranslationArgs<'args> = FluentArgs<'args>;
 
 /// The internal Fluent backend for the `t!` macro.
 #[doc(hidden)]
-pub fn t_macro_backend(id: &str, cx: Scope) -> String {
+pub fn t_macro_backend(id: &str) -> String {
     // This `G` doesn't actually need to match up at all, but we do need to find the
     // right type
-    let translator = use_context::<Reactor<PerseusNodeType>>(cx).get_translator();
+    let translator = use_context::<Reactor<PerseusNodeType>>().get_translator();
     translator.translate(id, None)
 }
 /// The internal Fluent backend for the `t!` macro, when it's used with
 /// arguments.
 #[doc(hidden)]
-pub fn t_macro_backend_with_args(id: &str, args: FluentArgs, cx: Scope) -> String {
+pub fn t_macro_backend_with_args(id: &str, args: FluentArgs) -> String {
     // This `G` doesn't actually need to match up at all, but we do need to find the
     // right type
-    let translator = use_context::<Reactor<PerseusNodeType>>(cx).get_translator();
+    let translator = use_context::<Reactor<PerseusNodeType>>().get_translator();
     translator.translate(id, Some(args))
 }
 /// The internal Fluent backend for the `link!` macro.
 #[doc(hidden)]
-pub fn link_macro_backend(url: &str, cx: Scope) -> String {
+pub fn link_macro_backend(url: &str) -> String {
     // This `G` doesn't actually need to match up at all, but we do need to find the
     // right type
-    let translator = use_context::<Reactor<PerseusNodeType>>(cx).get_translator();
+    let translator = use_context::<Reactor<PerseusNodeType>>().get_translator();
     translator.url(url)
 }

@@ -26,13 +26,9 @@ use std::pin::Pin;
 use std::rc::Rc;
 use std::{any::TypeId, sync::Arc};
 use std::{collections::HashMap, panic::PanicInfo};
-use sycamore::prelude::Scope;
-use sycamore::utils::hydrate::with_no_hydration_context;
-use sycamore::web::{Html, SsrNode};
-use sycamore::{
-    prelude::{component, view},
-    view::View,
-};
+use sycamore::prelude::{component, create_root, view};
+use sycamore::web::SsrNode;
+use sycamore::web::View;
 
 /// The default index view, because some simple apps won't need anything fancy
 /// here. The user should be able to provide the smallest possible amount of
@@ -108,17 +104,17 @@ where
 /// However, this does mean that the methods on this `struct` for adding
 /// templates and capsules perform `Box::leak` calls internally, creating
 /// deliberate memory leaks. This would be ...
-pub struct PerseusAppBase<G: Html, M: MutableStore, T: TranslationsManager> {
+pub struct PerseusAppBase<M: MutableStore, T: TranslationsManager> {
     /// The HTML ID of the root `<div>` element into which Perseus will be
     /// injected.
     pub(crate) root: String,
     /// A list of all the templates and capsules that the app uses.
-    pub(crate) entities: EntityMap<G>,
+    pub(crate) entities: EntityMap,
     /// The app's error pages.
     #[cfg(client)]
-    pub(crate) error_views: Option<Rc<ErrorViews<G>>>,
+    pub(crate) error_views: Option<Rc<ErrorViews>>,
     #[cfg(engine)]
-    pub(crate) error_views: Option<Arc<ErrorViews<G>>>,
+    pub(crate) error_views: Option<Arc<ErrorViews>>,
     /// The maximum size for the page state store.
     pub(crate) pss_max_size: usize,
     /// The global state creator for the app.
@@ -170,16 +166,13 @@ pub struct PerseusAppBase<G: Html, M: MutableStore, T: TranslationsManager> {
     /// This is in an `Arc` because panic hooks are `Fn`s, not `FnOnce`s.
     #[cfg(any(client, doc))]
     #[allow(clippy::type_complexity)]
-    pub(crate) panic_handler_view: Arc<
-        dyn Fn(Scope, ClientError, ErrorContext, ErrorPosition) -> (View<SsrNode>, View<G>)
-            + Send
-            + Sync,
-    >,
+    pub(crate) panic_handler_view:
+        Arc<dyn Fn(ClientError, ErrorContext, ErrorPosition) -> (View, View) + Send + Sync>,
     // We need this on the client-side to account for the unused type parameters
     #[cfg(any(client, doc))]
     _marker: PhantomData<(M, T)>,
 }
-impl<G: Html, M: MutableStore, T: TranslationsManager> std::fmt::Debug for PerseusAppBase<G, M, T> {
+impl<M: MutableStore, T: TranslationsManager> std::fmt::Debug for PerseusAppBase<M, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // We have to do the commons, and then the target-gates separately (otherwise
         // Rust uses the dummy methods)
@@ -221,7 +214,7 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> std::fmt::Debug for Perse
 // The usual implementation in which the default mutable store is used
 // We don't need to have a similar one for the default translations manager
 // because things are completely generic there
-impl<G: Html, T: TranslationsManager> PerseusAppBase<G, FsMutableStore, T> {
+impl<T: TranslationsManager> PerseusAppBase<FsMutableStore, T> {
     /// Creates a new instance of a Perseus app using the default
     /// filesystem-based mutable store (see [`FsMutableStore`]). For most apps,
     /// this will be sufficient. Note that this initializes the translations
@@ -261,7 +254,7 @@ impl<G: Html, T: TranslationsManager> PerseusAppBase<G, FsMutableStore, T> {
 }
 // If one's using the default translations manager, caching should be handled
 // automatically for them
-impl<G: Html, M: MutableStore> PerseusAppBase<G, M, FsTranslationsManager> {
+impl<M: MutableStore> PerseusAppBase<M, FsTranslationsManager> {
     /// The same as `.locales_and_translations_manager()`, but this accepts a
     /// literal [`Locales`] `struct`, which means this can be used when you're
     /// using [`FsTranslationsManager`] but when you don't know if your app is
@@ -326,7 +319,7 @@ impl<G: Html, M: MutableStore> PerseusAppBase<G, M, FsTranslationsManager> {
 }
 // The base implementation, generic over the mutable store and translations
 // manager
-impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
+impl<M: MutableStore, T: TranslationsManager> PerseusAppBase<M, T> {
     /// Creates a new instance of a Perseus app, with the default options and a
     /// customizable [`MutableStore`], using the default dummy
     /// [`FsTranslationsManager`] by default (though this can be changed).
@@ -434,90 +427,51 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
     ///
     /// Usually, it's preferred to run `.template()` once for each template,
     /// rather than manually constructing this more inconvenient type.
-    pub fn templates(mut self, val: Vec<Template<G>>) -> Self {
+    pub fn templates(mut self, val: Vec<Template>) -> Self {
         for template in val.into_iter() {
             self = self.template(template);
         }
         self
     }
     /// Adds a single new template to the app. This expects the output of
-    /// a function that is generic over `G: Html`. If you have something with a
-    /// predetermined type, like a `lazy_static!` that's using
-    /// `PerseusNodeType`, you should use `.template_ref()` instead. For
-    /// more information on the differences between the function and referrence
-    /// patterns, see the book.
+    /// a function that creates a template. No more generic type parameters
+    /// needed in Sycamore v0.9!
     ///
     /// See [`Template`] for further details.
-    pub fn template(self, val: impl Into<Forever<Template<G>>>) -> Self {
+    pub fn template(self, val: impl Into<Forever<Template>>) -> Self {
         self.template_ref(val)
     }
     /// Adds a single new template to the app. This can accept either an owned
     /// [`Template`] or a static reference to one, as might be created by a
-    /// `lazy_static!`. The latter would force you to specify the rendering
-    /// backend type (`G`) manually, using a smart alias like
-    /// `PerseusNodeType`. This method performs internal type coercions to make
+    /// `lazy_static!`. This method performs internal type coercions to make
     /// statics work neatly.
-    ///
-    /// If your templates come from functions like `get_template`, that are
-    /// generic over `G: Html`, you can use `.template()`, to avoid having
-    /// to specify `::<G>` manually.
     ///
     /// See [`Template`] for further details, and the book for further details
     /// on the differences between the function and reference patterns.
-    pub fn template_ref<H: Html>(mut self, val: impl Into<Forever<Template<H>>>) -> Self {
-        assert_eq!(
-            TypeId::of::<G>(),
-            TypeId::of::<H>(),
-            "mismatched render backends"
-        );
+    pub fn template_ref(mut self, val: impl Into<Forever<Template>>) -> Self {
         let val = val.into();
-        // SAFETY: We asserted that `G == H` above.
-        let val: Forever<Template<G>> = unsafe { std::mem::transmute(val) };
 
-        let entity: Forever<Entity<G>> = match val {
-            Forever::Owned(capsule) => capsule.inner.into(),
-            Forever::StaticRef(capsule_ref) => (&capsule_ref.inner).into(),
+        let entity: Forever<Entity> = match val {
+            Forever::Owned(template) => template.inner.into(),
+            Forever::StaticRef(template_ref) => (&template_ref.inner).into(),
         };
 
         let path = entity.get_path();
         self.entities.insert(path, entity);
         self
     }
-    // TODO
-    // /// Sets all the app's capsules. This takes a vector of capsules.
-    // ///
-    // /// Usually, it's preferred to run `.capsule()` once for each capsule,
-    // /// rather than manually constructing this more inconvenient type.
-    // pub fn capsules(mut self, val: Vec<Capsule<G>>) -> Self {
-    //     for capsule in val.into_iter() {
-    //         self = self.capsule(capsule);
-    //     }
-    //     self
-    // }
-    /// Adds a single new capsule to the app. Like `.template()`, this expects
-    /// the output of a function that is generic over `G: Html`. If you have
-    /// something with a predetermined type, like a `lazy_static!` that's
-    /// using `PerseusNodeType`, you should use `.capsule_ref()`
-    /// instead. For more information on the differences between the function
-    /// and reference patterns, see the book.
+    /// Adds a single new capsule to the app. Like `.template()`, this no longer
+    /// requires generic type parameters in Sycamore v0.9.
     ///
     /// See [`Capsule`] for further details.
-    pub fn capsule<P: Clone + 'static>(self, val: impl Into<Forever<Capsule<G, P>>>) -> Self {
+    pub fn capsule<P: Clone + 'static>(self, val: impl Into<Forever<Capsule<P>>>) -> Self {
         self.capsule_ref(val)
     }
     /// Adds a single new capsule to the app. This behaves like
     /// `.template_ref()`, but for capsules.
     ///
     /// See [`Capsule`] for further details.
-    pub fn capsule_ref<H: Html, P: Clone + 'static>(
-        mut self,
-        val: impl Into<Forever<Capsule<H, P>>>,
-    ) -> Self {
-        assert_eq!(
-            TypeId::of::<G>(),
-            TypeId::of::<H>(),
-            "mismatched render backends"
-        );
+    pub fn capsule_ref<P: Clone + 'static>(mut self, val: impl Into<Forever<Capsule<P>>>) -> Self {
         let val = val.into();
         // Enforce that capsules must have defined fallbacks
         if val.fallback.is_none() {
@@ -527,10 +481,7 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
             )
         }
 
-        // SAFETY: We asserted that `G == H` above.
-        let val: Forever<Capsule<G, P>> = unsafe { std::mem::transmute(val) };
-
-        let entity: Forever<Entity<G>> = match val {
+        let entity: Forever<Entity> = match val {
             Forever::Owned(capsule) => capsule.inner.into(),
             Forever::StaticRef(capsule_ref) => (&capsule_ref.inner).into(),
         };
@@ -544,7 +495,7 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
     // usage. Note that the default value of this is extracted from the default
     // error views.
     #[allow(unused_mut)]
-    pub fn error_views(mut self, mut val: ErrorViews<G>) -> Self {
+    pub fn error_views(mut self, mut val: ErrorViews) -> Self {
         #[cfg(any(client, doc))]
         {
             let panic_handler = val.take_panic_handler();
@@ -718,12 +669,10 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
     ///
     /// Warning: this view can't be reactive (yet). It will be rendered to a
     /// static string, which won't be hydrated.
-    // The lifetime of the provided function doesn't need to be static, because we
-    // render using it and then we're done with it
-    pub fn index_view<'a>(mut self, f: impl Fn(Scope) -> View<SsrNode> + 'a) -> Self {
+    pub fn index_view<'a>(mut self, f: impl Fn() -> View + 'a) -> Self {
         // We need to render the index view without any hydration IDs (which would break
         // the HTML shell's interpolation mechanisms)
-        let html_str = sycamore::render_to_string(|cx| with_no_hydration_context(|| f(cx)));
+        let html_str = sycamore::render_to_string(f);
         self.index_view = html_str;
 
         self
@@ -792,13 +741,6 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
             .unwrap_or_else(|| self.root.to_string());
         Ok(root)
     }
-    // /// Gets the directory containing static assets to be hosted under the URL
-    // /// `/.perseus/static/`.
-    // // TODO Plugin action for this?
-    // #[cfg(engine)]
-    // pub fn get_static_dir(&self) -> String {
-    //     self.static_dir.to_string()
-    // }
     /// Gets the index view as a string, without generating an HTML shell (pass
     /// this into `::get_html_shell()` to do that).
     ///
@@ -902,32 +844,6 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
 
         Ok(html_shell)
     }
-    // /// Gets the map of entities (i.e. templates and capsules combined).
-    // pub fn get_entities_map(&self) -> EntityMap<G> {
-    //     // This is cheap to clone
-    //     self.entities.clone()
-    // }
-    // /// Gets the [`ErrorViews`] used in the app. This returns an `Rc`.
-    // #[cfg(any(client, doc))]
-    // pub fn get_error_views(&self) -> Rc<ErrorViews<G>> {
-    //     self.error_views.clone()
-    // }
-    // /// Gets the [`ErrorViews`] used in the app. This returns an `Arc`.
-    // #[cfg(engine)]
-    // pub fn get_atomic_error_views(&self) -> Arc<ErrorViews<G>> {
-    //     self.error_views.clone()
-    // }
-    // /// Gets the maximum number of pages that can be stored in the page state
-    // /// store before the oldest are evicted.
-    // pub fn get_pss_max_size(&self) -> usize {
-    //     self.pss_max_size
-    // }
-    // /// Gets the [`GlobalStateCreator`]. This can't be directly modified by
-    // /// plugins because of reactive type complexities.
-    // #[cfg(engine)]
-    // pub fn get_global_state_creator(&self) -> Arc<GlobalStateCreator> {
-    //     self.global_state_creator.clone()
-    // }
     /// Gets the locales information.
     pub fn get_locales(&self) -> Result<Locales, PluginError> {
         let locales = self.locales.clone();
@@ -965,23 +881,6 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
             .unwrap_or(immutable_store);
         Ok(immutable_store)
     }
-    // /// Gets the [`MutableStore`]. This can't be modified by plugins due to
-    // /// trait complexities, so plugins should instead expose a function that
-    // /// the user can use to manually set it.
-    // #[cfg(engine)]
-    // pub fn get_mutable_store(&self) -> M {
-    //     self.mutable_store.clone()
-    // }
-    // /// Gets the plugins registered for the app.
-    // #[cfg(engine)]
-    // pub fn get_plugins(&self) -> Arc<Plugins> {
-    //     self.plugins.clone()
-    // }
-    // /// Gets the plugins registered for the app.
-    // #[cfg(any(client, doc))]
-    // pub fn get_plugins(&self) -> Rc<Plugins> {
-    //     self.plugins.clone()
-    // }
     /// Gets the static aliases. This will check all provided resource paths to
     /// ensure they don't reference files outside the project directory, due to
     /// potential security risks in production (we don't want to
@@ -1045,15 +944,11 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
         &mut self,
     ) -> (
         Option<Box<dyn Fn(&PanicInfo) + Send + Sync + 'static>>,
-        Arc<
-            dyn Fn(Scope, ClientError, ErrorContext, ErrorPosition) -> (View<SsrNode>, View<G>)
-                + Send
-                + Sync,
-        >,
+        Arc<dyn Fn(ClientError, ErrorContext, ErrorPosition) -> (View, View) + Send + Sync>,
     ) {
         let panic_handler_view = std::mem::replace(
             &mut self.panic_handler_view,
-            Arc::new(|_, _, _, _| unreachable!()),
+            Arc::new(|_, _, _| unreachable!()),
         );
         let general_panic_handler = self.panic_handler.take();
 
@@ -1067,8 +962,8 @@ impl<G: Html, M: MutableStore, T: TranslationsManager> PerseusAppBase<G, M, T> {
 /// manually.
 #[component]
 #[allow(non_snake_case)]
-pub fn PerseusRoot<G: Html>(cx: Scope) -> View<G> {
-    view! { cx,
+pub fn PerseusRoot() -> View {
+    view! {
         // Since we render the index view with no hydration IDs, this conforms
         // to the expectations of the HTML shell
         div(id = "root")
@@ -1080,14 +975,19 @@ use crate::stores::FsMutableStore;
 
 /// An alias for the usual kind of Perseus app, which uses the filesystem-based
 /// mutable store and translations manager. See [`PerseusAppBase`] for details.
-pub type PerseusApp<G> = PerseusAppBase<G, FsMutableStore, FsTranslationsManager>;
+//pub type PerseusApp = PerseusAppBase<FsMutableStore, FsTranslationsManager>;
 /// An alias for a Perseus app that uses a custom mutable store type. See
 /// [`PerseusAppBase`] for details.
-pub type PerseusAppWithMutableStore<G, M> = PerseusAppBase<G, M, FsTranslationsManager>;
+//pub type PerseusAppWithMutableStore<M> = PerseusAppBase<M, FsTranslationsManager>;
 /// An alias for a Perseus app that uses a custom translations manager type. See
 /// [`PerseusAppBase`] for details.
-pub type PerseusAppWithTranslationsManager<G, T> = PerseusAppBase<G, FsMutableStore, T>;
+//pub type PerseusAppWithTranslationsManager<T> = PerseusAppBase<FsMutableStore, T>;
 /// An alias for a fully customizable Perseus app that can accept a custom
 /// mutable store and a custom translations manager. Alternatively, you could
 /// just use [`PerseusAppBase`] directly.
-pub type PerseusAppWithMutableStoreAndTranslationsManager<G, M, T> = PerseusAppBase<G, M, T>;
+//pub type PerseusAppWithMutableStoreAndTranslationsManager<M, T> = PerseusAppBase<M, T>;
+
+pub type PerseusApp = PerseusAppBase<FsMutableStore, FsTranslationsManager>;
+pub type PerseusAppWithMutableStore<M> = PerseusAppBase<M, FsTranslationsManager>;
+pub type PerseusAppWithTranslationsManager<T> = PerseusAppBase<FsMutableStore, T>;
+pub type PerseusAppWithMutableStoreAndTranslationsManager<M, T> = PerseusAppBase<M, T>;

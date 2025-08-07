@@ -1,255 +1,259 @@
-version="0.3.2"
-env_files = [ ".env" ]
+version = "0.3.2"
+env_files = [".env"]
 
 [scripts]
 setup.cmd.generic = [
-    "cargo build",
-    "npm i --prefix ./website",
-    "echo \"\n\nThe Perseus repository is ready for local development! Type 'bonnie help' to see the available commands you can run here. Also, please ensure that you have 'npx' available and that you've installed 'tailwindcss', `concurrently`, `serve` and 'browser-sync' ('npm i -g tailwindcss concurrently serve browser-sync') if you'll be working with the website or running `bonnie dev export-serve ...`.\""
+  "git checkout v0.5.0",
+  "cargo build",
+  "npm i --prefix ./website",
+  "echo \"\n\nThe Perseus repository is ready for local development! Type 'bonnie help' to see the available commands you can run here. Also, please ensure that you have 'npx' available and that you've installed 'tailwindcss', `concurrently`, `serve` and 'browser-sync' ('npm i -g tailwindcss concurrently serve browser-sync') if you'll be working with the website or running `bonnie dev export-serve ...`.\"",
 ]
 setup.cmd.targets.windows = [
-    "cargo build",
-    "npm i --prefix ./website",
-    "Write-Host \"\n\nThe Perseus repository is ready for local development! Type 'bonnie help' to see the available commands you can run here. Also, please ensure that you have 'npx' available and that you've installed 'tailwindcss', `concurrently`, `serve` and 'browser-sync' ('npm i -g tailwindcss concurrently serve browser-sync') if you'll be working with the website or running `bonnie dev export-serve ...`.\""
+  "cargo build",
+  "npm i --prefix ./website",
+  "Write-Host \"\n\nThe Perseus repository is ready for local development! Type 'bonnie help' to see the available commands you can run here. Also, please ensure that you have 'npx' available and that you've installed 'tailwindcss', `concurrently`, `serve` and 'browser-sync' ('npm i -g tailwindcss concurrently serve browser-sync') if you'll be working with the website or running `bonnie dev export-serve ...`.\"",
 ]
 setup.desc = "sets everything up for local development"
 
 dev.subcommands.export-serve-deploy-relative.cmd.generic = [
-    "PERSEUS_BASE_PATH=http://localhost:8080/relative bonnie dev example %category %example deploy --export-static",
-    "cd examples/%category/%example",
-    "mkdir pkg.new",
-    "mv pkg/ pkg.new/",
-    "mv pkg.new/ pkg/",
-    "mv pkg/pkg/ pkg/relative",
-    "serve -p 8080 pkg/"
+  "PERSEUS_BASE_PATH=http://localhost:8080/relative bonnie dev example %category %example deploy --export-static",
+  "cd examples/%category/%example",
+  "mkdir pkg.new",
+  "mv pkg/ pkg.new/",
+  "mv pkg.new/ pkg/",
+  "mv pkg/pkg/ pkg/relative",
+  "serve -p 8080 pkg/",
 ]
 dev.subcommands.export-serve-deploy-relative.cmd.targets.windows = [
-    "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/relative\"; bonnie dev example %category %example deploy --export-static }",
-    "cd examples\\%category\\%example",
-    "New-Item -Force -ItemType directory -Path pkg.new",
-    "Move-Item  -Path pkg -Destination pkg.new",
-    "Rename-Item -Path pkg.new -NewName pkg",
-    "Rename-Item -Path pkg\\pkg -NewName relative",
-    "serve -p 8080 pkg/"
+  "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/relative\"; bonnie dev example %category %example deploy --export-static }",
+  "cd examples\\%category\\%example",
+  "New-Item -Force -ItemType directory -Path pkg.new",
+  "Move-Item  -Path pkg -Destination pkg.new",
+  "Rename-Item -Path pkg.new -NewName pkg",
+  "Rename-Item -Path pkg\\pkg -NewName relative",
+  "serve -p 8080 pkg/",
 ]
-dev.subcommands.export-serve-deploy-relative.args = [ "category", "example" ]
+dev.subcommands.export-serve-deploy-relative.args = ["category", "example"]
 dev.subcommands.export-serve-deploy-relative.desc = "deploys (exported) and serves the given example at a relative local path"
 
 dev.subcommands.example.cmd = "rust-script scripts/example.rs %category %example %EXAMPLE_INTEGRATION %%"
-dev.subcommands.example.args = [ "category", "example" ]
-dev.subcommands.example.env_vars = [ "EXAMPLE_INTEGRATION" ] # This will be set automatically to Warp by `.env` unless overridden
+dev.subcommands.example.args = ["category", "example"]
+dev.subcommands.example.env_vars = [
+  "EXAMPLE_INTEGRATION",
+] # This will be set automatically to Warp by `.env` unless overridden
 dev.subcommands.example.desc = "runs the given example using a live version of the cli"
 
 bench.subcommands.size.cmd = "rust-script scripts/wasm_size_bench.rs %category %example %%"
-bench.subcommands.size.args = [ "category", "example" ]
+bench.subcommands.size.args = ["category", "example"]
 bench.subcommands.size.desc = "benchmarks the production size of the given example"
 
 site.cmd = "concurrently \"bonnie site export\" \"bonnie site build-tailwind\""
 site.desc = "builds and serves the site for local development (requires `concurrently`)"
 site.subcommands.export.cmd = [
-    "cd website",
-    "perseus export -sw --custom-watch ../docs/ --cargo-engine-path cargo-clif"
+  "cd website",
+  "perseus export -sw --custom-watch ../docs/ --cargo-engine-path cargo-clif",
 ]
 site.subcommands.export.desc = "exports and serves the site, watching for changes"
 site.subcommands.check.cmd = [
-    "cd website",
-    "perseus check -w --cargo-engine-path cargo-clif"
+  "cd website",
+  "perseus check -w --cargo-engine-path cargo-clif",
 ]
 site.subcommands.check.desc = "checks the code of the website"
-site.subcommands.tinker.cmd = [
-    "cd website",
-    "perseus tinker"
-]
+site.subcommands.tinker.cmd = ["cd website", "perseus tinker"]
 site.subcommands.tinker.desc = "runs tinkers on the website"
 site.subcommands.build-tailwind.cmd = [
-    "cd website",
-    "tailwindcss -c ./tailwind.config.js -o ./static/tailwind.css -w"
+  "cd website",
+  "tailwindcss -c ./tailwind.config.js -o ./static/tailwind.css -w",
 ]
 site.subcommands.build-tailwind.desc = "builds a tailwind stylesheet for development, watching for changes"
 site.subcommands.build-tailwind.subcommands.prod.cmd.generic = [
-    "cd website",
-    "NODE_ENV=production tailwindcss -c ./tailwind.config.js -o ./static/tailwind.css --minify"
+  "cd website",
+  "NODE_ENV=production tailwindcss -c ./tailwind.config.js -o ./static/tailwind.css --minify",
 ]
 site.subcommands.build-tailwind.subcommands.prod.cmd.targets.windows = [
-    "cd website",
-    "powershell -Command { $env:NODE_ENV=\"production\"; tailwindcss -s tailwind.config.js -o static/tailwind.css --minify }"
+  "cd website",
+  "powershell -Command { $env:NODE_ENV=\"production\"; tailwindcss -s tailwind.config.js -o static/tailwind.css --minify }",
 ]
 site.subcommands.build-tailwind.subcommands.prod.desc = "builds a tailwind stylesheet for production (minifying)"
 site.subcommands.deploy.cmd.generic = [
-    "bonnie site build-tailwind prod",
-    "cd website",
-    "PERSEUS_BASE_PATH=http://localhost:8080/perseus perseus tinker",
-    # Point this live version of the CLI at the given example
-    "PERSEUS_BASE_PATH=http://localhost:8080/perseus perseus deploy -e"
+  "bonnie site build-tailwind prod",
+  "cd website",
+  "PERSEUS_BASE_PATH=http://localhost:8080/perseus perseus tinker",
+  # Point this live version of the CLI at the given example
+  "PERSEUS_BASE_PATH=http://localhost:8080/perseus perseus deploy -e",
 ]
 site.subcommands.deploy.cmd.targets.windows = [
-    "bonnie site build-tailwind prod",
-    "cd website",
-    "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/perseus\"; perseus tinker }",
-    # Point this live version of the CLI at the given example
-    "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/perseus\"; perseus deploy -e }"
+  "bonnie site build-tailwind prod",
+  "cd website",
+  "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/perseus\"; perseus tinker }",
+  # Point this live version of the CLI at the given example
+  "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/perseus\"; perseus deploy -e }",
 ]
 site.subcommands.deploy.desc = "builds the website for production and finalizes it at `website/pkg`"
 site.subcommands.deploy-prod.cmd.generic = [
-    "bonnie site build-tailwind prod",
-    "cd website",
-    "PERSEUS_BASE_PATH=http://localhost:8080/perseus perseus tinker",
-    # Point this live version of the CLI at the given example
-    "PERSEUS_BASE_PATH=https://framesurge.sh/perseus perseus deploy -e",
-    "PERSEUS_BASE_PATH=https://framesurge.sh/perseus perseus export-error-page --code 404 --output pkg/404.html",
-    # Build the Tribble contributing docs
-    "cd ..",
-    "tribble deploy --path https://framesurge.sh/perseus/tribble -o tribble",
-    "mv tribble website/pkg/"
+  "bonnie site build-tailwind prod",
+  "cd website",
+  "PERSEUS_BASE_PATH=http://localhost:8080/perseus perseus tinker",
+  # Point this live version of the CLI at the given example
+  "PERSEUS_BASE_PATH=https://framesurge.sh/perseus perseus deploy -e",
+  "PERSEUS_BASE_PATH=https://framesurge.sh/perseus perseus export-error-page --code 404 --output pkg/404.html",
+  # Build the Tribble contributing docs
+  "cd ..",
+  "tribble deploy --path https://framesurge.sh/perseus/tribble -o tribble",
+  "mv tribble website/pkg/",
 ]
 site.subcommands.deploy-prod.cmd.targets.windows = [
-    "bonnie site build-tailwind prod",
-    "cd website",
-    "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/perseus\"; perseus tinker }",
-    # Point this live version of the CLI at the given example
-    "powershell -Command { $env:PERSEUS_BASE_PATH=\"https://framesurge.sh/perseus\"; perseus deploy -e }",
-    "powershell -Command { $env:PERSEUS_BASE_PATH=\"https://framesurge.sh/perseus\"; perseus export-error-page --code 404 --output pkg/404.html } ",
-    # Build the Tribble contributing docs
-    "cd ..",
-    "tribble deploy --path https://framesurge.sh/perseus/tribble -o tribble",
-    "Move-Item -Path tribble -Destination website\\pkg"
+  "bonnie site build-tailwind prod",
+  "cd website",
+  "powershell -Command { $env:PERSEUS_BASE_PATH=\"http://localhost:8080/perseus\"; perseus tinker }",
+  # Point this live version of the CLI at the given example
+  "powershell -Command { $env:PERSEUS_BASE_PATH=\"https://framesurge.sh/perseus\"; perseus deploy -e }",
+  "powershell -Command { $env:PERSEUS_BASE_PATH=\"https://framesurge.sh/perseus\"; perseus export-error-page --code 404 --output pkg/404.html } ",
+  # Build the Tribble contributing docs
+  "cd ..",
+  "tribble deploy --path https://framesurge.sh/perseus/tribble -o tribble",
+  "Move-Item -Path tribble -Destination website\\pkg",
 ]
 site.subcommands.deploy-prod.desc = "builds the website for production on GitHub Pages and finalizes it at `website/pkg`"
 site.subcommands.deploy.subcommands.serve.cmd.generic = [
-    "cd website",
-    "mkdir pkgs",
-    "mv pkg pkgs/perseus",
-    "mv pkgs pkg",
-    "serve -p 8080 pkg/"
+  "cd website",
+  "mkdir pkgs",
+  "mv pkg pkgs/perseus",
+  "mv pkgs pkg",
+  "serve -p 8080 pkg/",
 ]
 site.subcommands.deploy.subcommands.serve.cmd.targets.windows = [
-    "cd website",
-    "New-Item -Force -ItemType directory -Path pkgs",
-    "Move-Item -Path pkg -Destination pkgs/perseus",
-    "Rename-Item -Path pkgs -NewName pkg",
-    "serve -p 8080 pkg/"
+  "cd website",
+  "New-Item -Force -ItemType directory -Path pkgs",
+  "Move-Item -Path pkg -Destination pkgs/perseus",
+  "Rename-Item -Path pkgs -NewName pkg",
+  "serve -p 8080 pkg/",
 ]
 site.subcommands.deploy.subcommands.serve.desc = "serves the website for local testing after it's been built for production"
 site.subcommands.run.cmd = [
-    "bonnie site build-tailwind",
-    "cd website",
-    # Point this live version of the CLI at the given example
-    "perseus serve",
+  "bonnie site build-tailwind",
+  "cd website",
+  # Point this live version of the CLI at the given example
+  "perseus serve",
 ]
 site.subcommands.run.desc = "runs the website without watching for changes"
 
 check.cmd = [
-    "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo check --all",
-    "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo fmt --all -- --check",
-    "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo clippy --all",
-    "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" cargo check --all",
-    "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" cargo fmt --all -- --check",
-    "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" cargo clippy --all",
+  "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo check --all",
+  "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo fmt --all -- --check",
+  "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo clippy --all",
+  "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" cargo check --all",
+  "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" cargo fmt --all -- --check",
+  "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" cargo clippy --all",
 ]
 check.desc = "checks code for formatting errors and the like"
 
 spellcheck.cmd = "cspell lint **/*{.rs,.md} --no-progress"
 # TODO Windows version of this??
 spellcheck.subcommands.store.cmd = [
-    "cspell --words-only --unique **/*{.rs,.md} | sort --ignore-case > .project-words.txt"
+  "cspell --words-only --unique **/*{.rs,.md} | sort --ignore-case > .project-words.txt",
 ]
 spellcheck.subcommands.store.desc = "overrides and recreates the dictionary at `.project-words.txt`, filling it with all the current mistakes"
 spellcheck.desc = "checks docs and code for possible spelling errors (requires `cspell`)"
 
 test.cmd = [
-    "bonnie test core",
-    "bonnie test cli",
-    # Run tests for each example
-    "bonnie test example-all-integrations core basic",
-    "bonnie test example-all-integrations core custom_server",
-    "bonnie test example-all-integrations core error_views",
-    "bonnie test example-all-integrations core freezing_and_thawing",
-    "bonnie test example-all-integrations core global_state",
-    "bonnie test example-all-integrations core helper_build_state",
-    "bonnie test example-all-integrations core i18n",
-    "bonnie test example-all-integrations core idb_freezing",
-    "bonnie test example-all-integrations core index_view",
-    "bonnie test example-all-integrations core js_interop",
-    "bonnie test example-all-integrations core plugins",
-    "bonnie test example-all-integrations core preload",
-    "bonnie test example-all-integrations core router_state",
-    "bonnie test example-all-integrations core rx_state",
-    "bonnie test example-all-integrations core set_headers",
-    "bonnie test example-all-integrations core state_generation",
-    "bonnie test example-all-integrations core static_content",
-    "bonnie test example-all-integrations core suspense",
-    "bonnie test example-all-integrations core unreactive",
+  "bonnie test core",
+  "bonnie test cli",
+  # Run tests for each example
+  "bonnie test example-all-integrations core basic",
+  "bonnie test example-all-integrations core custom_server",
+  "bonnie test example-all-integrations core error_views",
+  "bonnie test example-all-integrations core freezing_and_thawing",
+  "bonnie test example-all-integrations core global_state",
+  "bonnie test example-all-integrations core helper_build_state",
+  "bonnie test example-all-integrations core i18n",
+  "bonnie test example-all-integrations core idb_freezing",
+  "bonnie test example-all-integrations core index_view",
+  "bonnie test example-all-integrations core js_interop",
+  "bonnie test example-all-integrations core plugins",
+  "bonnie test example-all-integrations core preload",
+  "bonnie test example-all-integrations core router_state",
+  "bonnie test example-all-integrations core rx_state",
+  "bonnie test example-all-integrations core set_headers",
+  "bonnie test example-all-integrations core state_generation",
+  "bonnie test example-all-integrations core static_content",
+  "bonnie test example-all-integrations core suspense",
+  "bonnie test example-all-integrations core unreactive",
 ]
 test.desc = "runs all tests headlessly (assumes geckodriver running in background)"
 # This sometimes works, and sometimes fails, depending on the mood of Cargo's caching (just re-run it a few times, restart, the usual)
 test.subcommands.core.cmd = [
-    # This will ignore end-to-end tests, but it will run long-running ones
-    "RUSTFLAGS=\"--cfg=engine --cfg=clientdoc\" CARGO_TARGET_DIR=\"target_engine_clientdoc\" RUSTDOCFLAGS=\"--cfg=engine --cfg=clientdoc\" cargo test --all",
-    # We should only test documentation on the client-side
-    "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" RUSTDOCFLAGS=\"--cfg=client\" cargo test --doc"
+  # This will ignore end-to-end tests, but it will run long-running ones
+  "RUSTFLAGS=\"--cfg=engine --cfg=clientdoc\" CARGO_TARGET_DIR=\"target_engine_clientdoc\" RUSTDOCFLAGS=\"--cfg=engine --cfg=clientdoc\" cargo test --all",
+  # We should only test documentation on the client-side
+  "RUSTFLAGS=\"--cfg=client\" CARGO_TARGET_DIR=\"target_wasm\" RUSTDOCFLAGS=\"--cfg=client\" cargo test --doc",
 ]
 test.subcommands.core.desc = "runs the core tests (these should be fairly quick)"
 test.subcommands.cli.cmd = [
-    # We have to run these one at a time, otherwise Rust literally gets overwhelmed and fails
-    "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo test --all --tests --no-fail-fast -- --ignored --test-threads 1"
+  # We have to run these one at a time, otherwise Rust literally gets overwhelmed and fails
+  "RUSTFLAGS=\"--cfg=engine\" CARGO_TARGET_DIR=\"target_engine\" cargo test --all --tests --no-fail-fast -- --ignored --test-threads 1",
 ]
 test.subcommands.cli.desc = "runs the cli tests (all are long-running, this will take a while)"
 test.subcommands.example-all-integrations.cmd = [
-    "EXAMPLE_INTEGRATION=actix-web bonnie dev example %category %example test",
-    "EXAMPLE_INTEGRATION=warp bonnie dev example %category %example test",
-    "EXAMPLE_INTEGRATION=axum bonnie dev example %category %example test",
-    "EXAMPLE_INTEGRATION=rocket bonnie dev example %category %example test"
+  "EXAMPLE_INTEGRATION=actix-web bonnie dev example %category %example test",
+  "EXAMPLE_INTEGRATION=warp bonnie dev example %category %example test",
+  "EXAMPLE_INTEGRATION=axum bonnie dev example %category %example test",
+  "EXAMPLE_INTEGRATION=rocket bonnie dev example %category %example test",
 ]
-test.subcommands.example-all-integrations.args = [ "category", "example" ]
+test.subcommands.example-all-integrations.args = ["category", "example"]
 test.subcommands.example-all-integrations.desc = "tests a single example with all integrations (assumes geckodriver running in background)"
 
 # Releases the project (maintainers only)
 # We commit all staged files so we can manually bump the Cargo version
 release.cmd = [
-    "git checkout stable",
-    "git merge main",
-    # Build the CLI to make sure all the version numbers are up to date
-    "cd packages/perseus-cli",
-    "cargo build",
-    "cd ../..",
-    "standard-version --sign --commit-all %%",
-    "git push --follow-tags origin stable",
-    "git checkout main",
-    "git merge stable",
-    "git push origin main"
+  "git checkout stable",
+  "git merge main",
+  # Build the CLI to make sure all the version numbers are up to date
+  "cd packages/perseus-cli",
+  "cargo build",
+  "cd ../..",
+  "standard-version --sign --commit-all %%",
+  "git push --follow-tags origin stable",
+  "git checkout main",
+  "git merge stable",
+  "git push origin main",
 ]
 release.desc = "creates a new project release and pushes it to github (cargo version must be manually bumped)"
 
 # --- COMMANDS FOLLOWING THIS POINT ARE LINUX-ONLY ---
 
 replace-versions.cmd = "find . \\( \\( -name \"*Cargo.toml\" -or -name \"*Cargo.toml.example\" -or \\( -name \"*.md\" -not  -name \"*.proj.md\" \\) \\) -not -name \"CHANGELOG.md\" -not -path \"./target/*\" -not -path \"./website/*\" \\) -exec sed -i -e 's/%old_version/%new_version/g' {} \\;"
-replace-versions.args = [ "old_version", "new_version" ]
+replace-versions.args = ["old_version", "new_version"]
 replace-versions.desc = "replaces an old version number with a new one in all relevant files (Linux only)"
 
 # Publishes each package
 publish.cmd = [
-    "bonnie check-branch stable",
-    "cd packages/perseus-macro",
-    "cargo publish %%",
-    "sleep 60", # Wait for `crates.io` to be ready
-    "cd ../perseus",
-    # We use the engine flag just to make sure everything vaguely works
-    "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
-    "cd ../perseus-cli",
-    "cargo publish %%",
-    # We delay this so that `crates.io` can have time to host the core
-    "cd ../perseus-actix-web",
-    "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
-    "cd ../perseus-warp",
-    "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
-    "cd ../perseus-axum",
-    "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
-    "cd ../perseus-rocket",
-    "RUSTFLAGS=\"--cfg=engine\" cargo publish %%"
+  "bonnie check-branch v.0.5.0",
+  "cd packages/perseus-macro",
+  "cargo publish %%",
+  "sleep 60",                    # Wait for `crates.io` to be ready
+  "cd ../perseus",
+  # We use the engine flag just to make sure everything vaguely works
+  "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
+  "cd ../perseus-cli",
+  "cargo publish %%",
+  # We delay this so that `crates.io` can have time to host the core
+  "cd ../perseus-actix-web",
+  "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
+  "cd ../perseus-warp",
+  "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
+  "cd ../perseus-axum",
+  "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
+  "cd ../perseus-rocket",
+  "RUSTFLAGS=\"--cfg=engine\" cargo publish %%",
 ]
 publish.desc = "publishes all packages to crates.io (needs branch 'stable', Linux only)"
 
 check-branch.cmd.exec = "[[ $(git rev-parse --abbrev-ref HEAD) == \"%branch\" ]] && exit 0 || echo \"You need to be on Git branch '%branch' to run this command.\"; exit 1"
-check-branch.cmd.shell = ["bash", "-c", "{COMMAND}"] # We need support for inline conditionals, so we can't use `sh`
-check-branch.args = [ "branch" ]
+check-branch.cmd.shell = [
+  "bash",
+  "-c",
+  "{COMMAND}",
+] # We need support for inline conditionals, so we can't use `sh`
+check-branch.args = ["branch"]
 check-branch.desc = "checks if the current git branch is the given argument, signals with exit codes (and warns), this will prevent following commands from running if it fails (Linux only)"

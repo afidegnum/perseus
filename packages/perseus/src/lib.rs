@@ -104,33 +104,15 @@ pub mod log {
     pub use web_sys::console::log_1 as log_js_value;
 }
 
-/// An alias for `DomNode`, `HydrateNode`, or `SsrNode`, depending on the
-/// `hydrate` feature flag and compilation target.
+/// An alias for the unified `View` type in Sycamore v0.9+.
 ///
-/// You **should not** use this in your return types (e.g.
-/// `View<PerseusNodeType>`), there you should use a `G: Html` generic.
-/// This is intended for `lazy_static!`s and the like, for capsules. See
-/// the book and capsule examples for further details.
-#[cfg(engine)]
-pub type PerseusNodeType = sycamore::web::SsrNode;
-/// An alias for `DomNode`, `HydrateNode`, or `SsrNode`, depending on the
-/// `hydrate` feature flag and compilation target.
+/// In Sycamore v0.9, the view system was unified and no longer requires
+/// generic type parameters for different rendering backends.
 ///
-/// You **should not** use this in your return types (e.g.
-/// `View<PerseusNodeType>`), there you should use a `G: Html` generic.
-/// This is intended for `lazy_static!`s and the like, for capsules. See
-/// the book and capsule examples for further details.
-#[cfg(all(client, not(feature = "hydrate")))]
-pub type PerseusNodeType = sycamore::web::DomNode;
-/// An alias for `DomNode`, `HydrateNode`, or `SsrNode`, depending on the
-/// `hydrate` feature flag and compilation target.
-///
-/// You **should not** use this in your return types (e.g.
-/// `View<PerseusNodeType>`), there you should use a `G: Html` generic.
-/// This is intended for `lazy_static!`s and the like, for capsules. See
-/// the book and capsule examples for further details.
-#[cfg(all(client, feature = "hydrate"))]
-pub type PerseusNodeType = sycamore::web::HydrateNode;
+/// You **should** use this in your return types instead of the old
+/// `View<G>` pattern from v0.8. This works across all compilation targets
+/// and rendering backends automatically.
+pub type PerseusNodeType = sycamore::web::View;
 
 /// A series of imports needed by most Perseus apps, in some form. This should
 /// be used in conjunction with the Sycamore prelude.
@@ -144,7 +126,6 @@ pub mod prelude {
     pub use crate::reactor::Reactor;
     pub use crate::state::{BuildPaths, RxResult, RxResultRx, SerdeInfallible, StateGeneratorInfo};
     pub use crate::template::{Capsule, Template};
-    pub use sycamore::web::Html;
     pub use sycamore_router::{navigate, navigate_replace};
 
     #[cfg(engine)]

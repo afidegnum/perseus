@@ -6,14 +6,13 @@ use crate::{
     state::{AnyFreeze, GlobalStateType, MakeRx, MakeUnrx},
 };
 use serde::{de::DeserializeOwned, Serialize};
-use sycamore::{
-    prelude::{create_ref, Scope},
-    web::Html,
-};
+// Updated imports for Sycamore v0.9.1
+use sycamore::prelude::create_memo;
+use sycamore::web::View;
 
 // These methods are used for acquiring the global state on both the
 // browser-side and the engine-side
-impl<G: Html> Reactor<G> {
+impl Reactor {
     /// Gets the global state. Note that this can only be used for reactive
     /// global state, since Perseus always expects your global state to be
     /// reactive.
@@ -24,20 +23,20 @@ impl<G: Html> Reactor<G> {
     /// instead.
     // This function takes the final ref struct as a type parameter! That
     // complicates everything substantially.
-    pub fn get_global_state<'a, I>(&self, cx: Scope<'a>) -> &'a I
+    pub fn get_global_state<I>(&self) -> &I
     where
         I: MakeUnrx + AnyFreeze + Clone,
         I::Unrx: MakeRx<Rx = I>,
     {
         // Warn the user about the perils of having no build-time global state handler
-        self.try_get_global_state::<I>(cx).unwrap().expect("you requested global state, but none exists for this app (if you're generating it at request-time, then you can't access it at build-time; try adding a build-time generator too, or target-gating your use of global state for the browser-side only)")
+        self.try_get_global_state::<I>().unwrap().expect("you requested global state, but none exists for this app (if you're generating it at request-time, then you can't access it at build-time; try `.try_global_state()` instead)")
     }
     /// The underlying logic for `.get_global_state()`, except this will return
     /// `None` if the app does not have global state.
     ///
     /// This will return an error if the state from the server was found to be
     /// invalid.
-    pub fn try_get_global_state<'a, I>(&self, cx: Scope<'a>) -> Result<Option<&'a I>, ClientError>
+    pub fn try_get_global_state<I>(&self) -> Result<Option<&I>, ClientError>
     where
         I: MakeUnrx + AnyFreeze + Clone,
         I::Unrx: MakeRx<Rx = I>,
@@ -86,7 +85,9 @@ impl<G: Html> Reactor<G> {
                 }
             };
 
-        Ok(Some(create_ref(cx, intermediate_state)))
+        // In Sycamore v0.9, we don't need create_ref with Scope
+        // We can return the state directly or use a different approach
+        Ok(Some(&intermediate_state))
     }
 
     /// Determines if the global state should use the state given by the server,

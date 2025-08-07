@@ -2,7 +2,7 @@ use crate::reactor::Reactor;
 use crate::translator::errors::*;
 use crate::PerseusNodeType;
 use std::collections::HashMap;
-use sycamore::prelude::{use_context, Scope, Signal};
+use sycamore::prelude::{use_context, Signal};
 
 /// The file extension used by the lightweight translator, which expects JSON
 /// files.
@@ -145,26 +145,26 @@ impl TranslationArgs {
 
 /// The internal lightweight backend for the `t!` macro.
 #[doc(hidden)]
-pub fn t_macro_backend(id: &str, cx: Scope) -> String {
+pub fn t_macro_backend(id: &str) -> String {
     // This `G` doesn't actually need to match up at all, but we do need to find the
     // right type
-    let translator = use_context::<Reactor<PerseusNodeType>>(cx).get_translator();
+    let translator = use_context::<Reactor<PerseusNodeType>>().get_translator();
     translator.translate(id, None)
 }
 /// The internal lightweight backend for the `t!` macro, when it's used with
 /// arguments.
 #[doc(hidden)]
-pub fn t_macro_backend_with_args(id: &str, args: TranslationArgs, cx: Scope) -> String {
+pub fn t_macro_backend_with_args(id: &str, args: TranslationArgs) -> String {
     // This `G` doesn't actually need to match up at all, but we do need to find the
     // right type
-    let translator = use_context::<Reactor<PerseusNodeType>>(cx).get_translator();
+    let translator = use_context::<Reactor<PerseusNodeType>>().get_translator();
     translator.translate(id, Some(args))
 }
 /// The internal lightweight backend for the `link!` macro.
 #[doc(hidden)]
-pub fn link_macro_backend(url: &str, cx: Scope) -> String {
+pub fn link_macro_backend(url: &str) -> String {
     // This `G` doesn't actually need to match up at all, but we do need to find the
     // right type
-    let translator = use_context::<Reactor<PerseusNodeType>>(cx).get_translator();
+    let translator = use_context::<Reactor<PerseusNodeType>>().get_translator();
     translator.url(url)
 }

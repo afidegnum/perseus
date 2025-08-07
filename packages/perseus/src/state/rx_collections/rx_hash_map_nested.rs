@@ -5,7 +5,7 @@ use std::hash::Hash;
 use std::ops::Deref;
 #[cfg(any(client, doc))]
 use sycamore::prelude::Scope;
-use sycamore::reactive::{create_rc_signal, RcSignal};
+use sycamore::reactive::{create_signal, Signal};
 
 /// A reactive version of [`HashMap`] that uses nested reactivity on its
 /// elements. That means the type inside the vector must implement [`MakeRx`]
@@ -22,23 +22,23 @@ where
     V::Rx: MakeUnrx<Unrx = V> + Freeze + Clone;
 /// The reactive version of [`RxHashMapNested`].
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RxHashMapNestedRx<K, V>(RcSignal<HashMap<K, V::Rx>>)
+pub struct RxHashMapNestedRx<K, V>(Signal<HashMap<K, V::Rx>>)
 where
-    K: Clone + Serialize + DeserializeOwned + Eq + Hash,
+    K: Clone + Serialize + DeserializeOwned + Eq + Hash + 'static,
     V: MakeRx + Serialize + DeserializeOwned + 'static,
     V::Rx: MakeUnrx<Unrx = V> + Freeze + Clone;
 
 // --- Reactivity implementations ---
 impl<K, V> MakeRx for RxHashMapNested<K, V>
 where
-    K: Clone + Serialize + DeserializeOwned + Eq + Hash,
+    K: Clone + Serialize + DeserializeOwned + Eq + Hash + 'static,
     V: MakeRx + Serialize + DeserializeOwned + 'static,
     V::Rx: MakeUnrx<Unrx = V> + Freeze + Clone,
 {
     type Rx = RxHashMapNestedRx<K, V>;
 
     fn make_rx(self) -> Self::Rx {
-        RxHashMapNestedRx(create_rc_signal(
+        RxHashMapNestedRx(create_signal(
             self.0.into_iter().map(|(k, v)| (k, v.make_rx())).collect(),
         ))
     }
@@ -84,7 +84,7 @@ where
     V: MakeRx + Serialize + DeserializeOwned + 'static,
     V::Rx: MakeUnrx<Unrx = V> + Freeze + Clone,
 {
-    type Target = RcSignal<HashMap<K, V::Rx>>;
+    type Target = Signal<HashMap<K, V::Rx>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

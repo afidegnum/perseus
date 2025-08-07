@@ -22,19 +22,12 @@ pub use capsule::{Capsule, CapsuleInner};
 pub(crate) use states::States;
 
 use crate::{errors::ClientError, path::PathMaybeWithLocale, state::TemplateState};
-use sycamore::{
-    prelude::{Scope, ScopeDisposer},
-    view::View,
-};
+use sycamore::prelude::*;
+
 // Everything else in `fn_types.rs` is engine-only
 /// The type of functions that are given a state and render a page.
-pub(crate) type TemplateFn<G> = Box<
-    dyn for<'a> Fn(
-            Scope<'a>,
-            PreloadInfo,
-            TemplateState,
-            PathMaybeWithLocale,
-        ) -> Result<(View<G>, ScopeDisposer<'a>), ClientError>
+pub(crate) type TemplateFn = Box<
+    dyn Fn(PreloadInfo, TemplateState, PathMaybeWithLocale) -> Result<View, ClientError>
         + Send
         + Sync,
 >;

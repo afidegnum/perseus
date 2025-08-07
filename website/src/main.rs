@@ -17,8 +17,8 @@ pub fn main<G: Html>() -> PerseusApp<G> {
         .template(templates::plugins::get_template())
         .error_views(error_views::get_error_views())
         .locales_and_translations_manager("en-US", &[])
-        .index_view(|cx| {
-            sycamore::view! { cx,
+        .index_view({
+            sycamore::view! {
                 html(class = "light") {
                     head {
                         meta(charset = "UTF-8")

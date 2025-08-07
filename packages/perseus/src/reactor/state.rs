@@ -11,14 +11,11 @@ use crate::{
 };
 use serde::{de::DeserializeOwned, Serialize};
 #[cfg(any(client, doc))]
-use sycamore::prelude::Scope;
-use sycamore::web::Html;
-#[cfg(any(client, doc))]
 use sycamore_router::navigate;
 
 // Explicitly prevent the user from trying to freeze on the engine-side
 #[cfg(any(client, doc))]
-impl<G: Html> Freeze for Reactor<G> {
+impl Freeze for Reactor {
     fn freeze(&self) -> String {
         // This constructs a `FrozenApp`, which has everything the thawing reactor will
         // need
@@ -41,7 +38,7 @@ impl<G: Html> Freeze for Reactor<G> {
 }
 
 #[cfg(any(client, doc))]
-impl<G: Html> Reactor<G> {
+impl Reactor {
     /// Commands Perseus to 'thaw' the app from the given frozen state. You'll
     /// also need to provide preferences for thawing, which allow you to control
     /// how different pages should prioritize frozen state over existing (or
@@ -121,17 +118,20 @@ impl<G: Html> Reactor<G> {
     /// This function will panic if any errors occur in preloading, such as
     /// the route being not found, or not localized. If the path you're
     /// preloading is not hardcoded, use `.try_preload()` instead.
-    // Conveniently, we can use the lifetime mechanics of knowing that the render
-    // context is registered on the given scope to ensure that the future works
-    // out
-    pub fn preload<'a, 'b: 'a>(&'b self, cx: Scope<'a>, url: &str) {
+    pub fn preload(&self, url: &str) {
         use fmterr::fmt_err;
         let url = url.to_string();
+        let self_clone = self.clone();
 
-        sycamore_futures::spawn_local_scoped(cx, async move {
-            if let Err(err) = self.try_preload(&url).await {
-                panic!("{}", fmt_err(&err));
-            }
+        // Use create_effect instead of spawn_local_scoped
+        sycamore::prelude::create_effect(move || {
+            let url = url.clone();
+            let self_ref = self_clone.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                if let Err(err) = self_ref.try_preload(&url).await {
+                    panic!("{}", fmt_err(&err));
+                }
+            });
         });
     }
     /// Preloads the given URL from the server and caches it for the current
@@ -152,17 +152,20 @@ impl<G: Html> Reactor<G> {
     /// This function will panic if any errors occur in preloading, such as
     /// the route being not found, or not localized. If the path you're
     /// preloading is not hardcoded, use `.try_route_preload()` instead.
-    // Conveniently, we can use the lifetime mechanics of knowing that the render
-    // context is registered on the given scope to ensure that the future works
-    // out
-    pub fn route_preload<'a, 'b: 'a>(&'b self, cx: Scope<'a>, url: &str) {
+    pub fn route_preload(&self, url: &str) {
         use fmterr::fmt_err;
         let url = url.to_string();
+        let self_clone = self.clone();
 
-        sycamore_futures::spawn_local_scoped(cx, async move {
-            if let Err(err) = self.try_route_preload(&url).await {
-                panic!("{}", fmt_err(&err));
-            }
+        // Use create_effect instead of spawn_local_scoped
+        sycamore::prelude::create_effect(move || {
+            let url = url.clone();
+            let self_ref = self_clone.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                if let Err(err) = self_ref.try_route_preload(&url).await {
+                    panic!("{}", fmt_err(&err));
+                }
+            });
         });
     }
     /// A version of `.preload()` that returns a future that can resolve to an
@@ -247,7 +250,7 @@ impl<G: Html> Reactor<G> {
 
 // These methods are used for acquiring the state of pages on both the
 // browser-side and the engine-side
-impl<G: Html> Reactor<G> {
+impl Reactor {
     /// Gets the intermediate state type for the given page by evaluating active
     /// and frozen state to see if anything else is available, reverting to
     /// the provided state from the server if necessary.

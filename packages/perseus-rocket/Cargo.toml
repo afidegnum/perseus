@@ -4,8 +4,8 @@ version = "0.5.0"
 edition = "2021"
 description = "An integration that makes the Perseus framework easy to use with Rocket."
 authors = [
-    "Miroito <alban.vachette@gmail.com",
-    "arctic_hen7 <arctic_hen7@pm.me>",
+  "Miroito <alban.vachette@gmail.com",
+  "arctic_hen7 <arctic_hen7@pm.me>",
 ]
 license = "MIT"
 repository = "https://github.com/framesurge/perseus"
@@ -13,15 +13,15 @@ homepage = "https://framesurge.sh/perseus"
 readme = "./README.md"
 keywords = ["wasm", "frontend", "webdev", "ssg", "ssr"]
 categories = [
-    "wasm",
-    "web-programming::http-server",
-    "development-tools",
-    "asynchronous",
-    "gui",
+  "wasm",
+  "web-programming::http-server",
+  "development-tools",
+  "asynchronous",
+  "gui",
 ]
 
 [dependencies]
-perseus = { path = "../perseus", version = "0.4.3" }
+perseus = { path = "../perseus", version = "0.5.0" }
 rocket = "0.5"
 rocket_async_compression = { version = "0.6", optional = true }
 

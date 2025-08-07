@@ -8,7 +8,6 @@ use crate::{i18n::TranslationsManager, init::PerseusAppBase, stores::MutableStor
 use fmterr::fmt_err;
 use futures::Future;
 use std::env;
-use sycamore::web::SsrNode;
 
 /// A wrapper around `run_dflt_engine` for apps that only use exporting, and so
 /// don't need to bring in a server integration. This is designed to avoid extra
@@ -18,7 +17,8 @@ pub async fn run_dflt_engine_export_only<M, T, A>(op: EngineOperation, app: A) -
 where
     M: MutableStore + 'static,
     T: TranslationsManager + 'static,
-    A: Fn() -> PerseusAppBase<SsrNode, M, T> + 'static + Send + Sync + Clone,
+    // Fixed: Remove SsrNode generic parameter
+    A: Fn() -> PerseusAppBase<M, T> + 'static + Send + Sync + Clone,
 {
     let serve_fn = |_, _, _| async {
         panic!("`run_dflt_engine_export_only` cannot run a server; you should use `run_dflt_engine` instead and import a server integration (e.g. `perseus-warp`)")
@@ -54,7 +54,8 @@ where
     M: MutableStore + 'static,
     T: TranslationsManager + 'static,
     F: Future<Output = ()>,
-    A: Fn() -> PerseusAppBase<SsrNode, M, T> + 'static + Send + Sync + Clone,
+    // Fixed: Remove SsrNode generic parameter
+    A: Fn() -> PerseusAppBase<M, T> + 'static + Send + Sync + Clone,
 {
     // The turbine is the core of Perseus' state generation system
     let mut turbine = match Turbine::try_from(app()) {
@@ -155,7 +156,7 @@ where
             // In production, give the user a heads up that something's actually happening
             #[cfg(not(debug_assertions))]
             println!(
-                "Your production app is now live on <http://{host}:{port}>! To change this, re-run this command with different settings for the `PERSEUS_HOST` and `PERSEUS_PORT` environment variables.\nNote that the above address will not reflect any domains configured.",
+                "Your production app is now live on <http://{host}:{port}>! To change this, re-run this command with different settings for the `PERSEUS_HOST` and `PERSEUS_PORT` environment variables.",
                 host = &addr.0,
                 port = &addr.1
             );

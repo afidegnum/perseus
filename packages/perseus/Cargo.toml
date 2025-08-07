@@ -10,11 +10,11 @@ homepage = "https://framesurge.sh/perseus"
 readme = "../../README.md"
 keywords = ["wasm", "frontend", "webdev", "ssg", "ssr"]
 categories = [
-    "wasm",
-    "web-programming",
-    "development-tools",
-    "asynchronous",
-    "gui",
+  "wasm",
+  "web-programming",
+  "development-tools",
+  "asynchronous",
+  "gui",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -23,7 +23,7 @@ categories = [
 sycamore = { version = "^0.9.1", features = ["suspense"] }
 sycamore-router = "0.9"
 sycamore-futures = "0.9"
-perseus-macro = { path = "../perseus-macro", version = "0.4.3", optional = true }
+perseus-macro = { path = "../perseus-macro", version = "0.5.0", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -52,17 +52,17 @@ js-sys = { version = "0.3", optional = true }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 # TODO review feature flags here
 web-sys = { version = "0.3", features = [
-    "Headers",
-    "Navigator",
-    "NodeList",
-    "Request",
-    "RequestInit",
-    "RequestMode",
-    "Response",
-    "ReadableStream",
-    "Window",
-    "CustomEvent",
-    "CustomEventInit",
+  "Headers",
+  "Navigator",
+  "NodeList",
+  "Request",
+  "RequestInit",
+  "RequestMode",
+  "Response",
+  "ReadableStream",
+  "Window",
+  "CustomEvent",
+  "CustomEventInit",
 ] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
@@ -71,14 +71,14 @@ wasm-bindgen-futures = "0.4"
 # Live reloading will only take effect in development, and won't impact production
 # BUG This adds 1.9kB to the production bundle (that's without size optimizations though)
 default = [
-    "live-reload",
-    "hsr",
-    "client-helpers",
-    "macros",
-    "dflt-engine",
-    "minify",
-    "minify-css",
-    "cache-initial-load",
+  "live-reload",
+  "hsr",
+  "client-helpers",
+  "macros",
+  "dflt-engine",
+  "minify",
+  "minify-css",
+  "cache-initial-load",
 ]
 translator-fluent = ["fluent-bundle", "unic-langid", "intl-memoizer"]
 translator-lightweight = []
@@ -113,12 +113,12 @@ idb-freezing = ["rexie", "web-sys/StorageManager"]
 wasm2js = []
 # Enables automatic browser reloading whenever you make a change
 live-reload = [
-    "js-sys",
-    "web-sys/WebSocket",
-    "web-sys/MessageEvent",
-    "web-sys/ErrorEvent",
-    "web-sys/BinaryType",
-    "web-sys/Location",
+  "js-sys",
+  "web-sys/WebSocket",
+  "web-sys/MessageEvent",
+  "web-sys/ErrorEvent",
+  "web-sys/BinaryType",
+  "web-sys/Location",
 ]
 # Enables hot state reloading, whereby your entire app's state can be frozen and thawed automatically every time you change code in your app
 hsr = ["live-reload", "idb-freezing"]

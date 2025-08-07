@@ -1,13 +1,13 @@
+use sycamore::prelude::View;
 #[cfg(any(client, doc))]
 use sycamore::utils::render::insert;
 #[cfg(all(not(feature = "hydrate"), any(client, doc)))]
 use sycamore::web::DomNode;
 #[cfg(engine)]
 use sycamore::web::SsrNode;
-use sycamore::{prelude::Scope, view::View};
 
 /// Renders or hydrates the given view to the given node,
-/// depending on feature flags. This will atuomatically handle
+/// depending on feature flags. This will automatically handle
 /// proper scoping.
 ///
 /// This has the option to force a render by ignoring the initial elements.
@@ -19,7 +19,6 @@ use sycamore::{prelude::Scope, view::View};
 #[cfg(any(client, doc))]
 #[allow(unused_variables)]
 pub(crate) fn render_or_hydrate(
-    cx: Scope,
     view: View<crate::template::BrowserNodeType>,
     parent: web_sys::Element,
     force_render: bool,
@@ -36,7 +35,7 @@ pub(crate) fn render_or_hydrate(
         }
 
         // We need `sycamore::hydrate_to_with_scope()`!
-        // --- Verbatim copy from Sycamore, changed for known scope ---
+        // --- Verbatim copy from Sycamore, changed for automatic scope management ---
         // Get children from parent into a View to set as the initial node value.
         let mut children = Vec::new();
         let child_nodes = parent.child_nodes();
@@ -49,7 +48,6 @@ pub(crate) fn render_or_hydrate(
             .collect::<Vec<_>>();
 
         insert(
-            cx,
             &HydrateNode::from_web_sys(parent.into()),
             if force_render {
                 with_no_hydration_context(|| view)
@@ -70,7 +68,6 @@ pub(crate) fn render_or_hydrate(
         // We have to delete the existing content before we can render the new stuff
         parent.set_inner_html("");
         insert(
-            cx,
             &DomNode::from_web_sys(parent.into()),
             view,
             None,
@@ -86,28 +83,21 @@ pub(crate) fn render_or_hydrate(
 // details!
 #[cfg(engine)]
 pub(crate) fn ssr_fallible<E>(
-    view_fn: impl FnOnce(Scope) -> Result<View<SsrNode>, E>,
+    view_fn: impl FnOnce() -> Result<View<SsrNode>, E>,
 ) -> Result<String, E> {
+    use sycamore::utils::hydrate::with_hydration_context;
     use sycamore::web::WriteToString;
-    use sycamore::{prelude::create_scope_immediate, utils::hydrate::with_hydration_context}; // XXX This may become private one day!
 
-    let mut ret = Ok(String::new());
-    create_scope_immediate(|cx| {
-        // Usefully, this wrapper can return anything!
-        let view_res = with_hydration_context(|| view_fn(cx));
-        match view_res {
-            Ok(view) => {
-                let mut view_str = String::new();
-                for node in view.flatten() {
-                    node.write_to_string(&mut view_str);
-                }
-                ret = Ok(view_str);
+    // Sycamore v0.9.1 manages scopes automatically
+    let view_res = with_hydration_context(|| view_fn());
+    match view_res {
+        Ok(view) => {
+            let mut view_str = String::new();
+            for node in view.flatten() {
+                node.write_to_string(&mut view_str);
             }
-            Err(err) => {
-                ret = Err(err);
-            }
+            Ok(view_str)
         }
-    });
-
-    ret
+        Err(err) => Err(err),
+    }
 }

@@ -74,8 +74,13 @@ pub fn auto_scope(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
     let parsed = syn::parse_macro_input!(input as test::TestFn);
-    let attr_args = syn::parse_macro_input!(args as syn::AttributeArgs);
-    // Parse macro arguments with `darling`
+
+    // Parse macro arguments with `darling` using the new syn 2.0 approach
+    let attr_args = match darling::ast::NestedMeta::parse_meta_list(args.into()) {
+        Ok(v) => v,
+        Err(e) => return TokenStream::from(e.to_compile_error()),
+    };
+
     let args = match test::TestArgs::from_list(&attr_args) {
         Ok(v) => v,
         Err(e) => {
