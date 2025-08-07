@@ -56,7 +56,7 @@ use std::{
 };
 #[cfg(any(client, doc))]
 use sycamore::{
-    reactive::{create_rc_signal, RcSignal},
+    reactive::{create_signal, Signal},
     web::View,
 };
 
@@ -113,10 +113,10 @@ pub struct Reactor {
     /// contain the contents of the current page, but it may also contain a
     /// page-wide error. This will be wrapped in a router.
     #[cfg(any(client, doc))]
-    current_view: RcSignal<View>,
+    current_view: Signal<View>,
     /// A reactive container for any popup errors.
     #[cfg(any(client, doc))]
-    popup_error_view: RcSignal<View>,
+    popup_error_view: Signal<View>,
     /// The app's root div ID.
     #[cfg(any(client, doc))]
     root: String,
@@ -136,9 +136,7 @@ pub struct Reactor {
 // This uses window variables set by the HTML shell, so it should never be used
 // on the engine-side
 #[cfg(any(client, doc))]
-impl<M: MutableStore, T: TranslationsManager> TryFrom<PerseusAppBase<M, T>>
-    for Reactor
-{
+impl<M: MutableStore, T: TranslationsManager> TryFrom<PerseusAppBase<M, T>> for Reactor {
     type Error = ClientError;
 
     fn try_from(app: PerseusAppBase<M, T>) -> Result<Self, Self::Error> {
@@ -186,8 +184,8 @@ impl<M: MutableStore, T: TranslationsManager> TryFrom<PerseusAppBase<M, T>>
             // This will be filled out by a `.thaw()` call or HSR
             frozen_app: Rc::new(RefCell::new(None)),
             is_first: Cell::new(true),
-            current_view: create_rc_signal(View::empty()),
-            popup_error_view: create_rc_signal(View::empty()),
+            current_view: create_signal(View::empty()),
+            popup_error_view: create_signal(View::empty()),
             entities: app.entities,
             locales,
             render_cfg,

@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use sycamore::{prelude::RcSignal, reactive::ScopeDisposer};
+use sycamore::{prelude::Signal, reactive::ScopeDisposer};
 
 /// This stores the disposers for user pages so that they can be safely
 /// unmounted when the view changes.
@@ -15,7 +15,7 @@ pub(crate) struct PageDisposer<'app> {
     /// There is no way to get this underlying scope disposer, it can only be
     /// set. Hence, we prevent there ever being multiple references to the
     /// underlying `Signal`.
-    disposer: RcSignal<Option<ScopeDisposer<'app>>>,
+    disposer: Signal<Option<ScopeDisposer<'app>>>,
 }
 impl<'app> PageDisposer<'app> {
     /// Updates the undelrying data structure to hold the given disposer, taking

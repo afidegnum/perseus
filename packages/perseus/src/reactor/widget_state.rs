@@ -55,6 +55,8 @@ impl Reactor {
             // ergonomically with the rest of the code, so we just break out entirely
             #[cfg(any(client, doc))]
             None => {
+                use sycamore::prelude::create_signal;
+
                 let view = create_signal(View::empty());
                 let fallback_fn = fallback_fn.clone();
 

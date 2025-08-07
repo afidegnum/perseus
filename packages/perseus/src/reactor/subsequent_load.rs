@@ -1,9 +1,5 @@
 use serde_json::Value;
-use sycamore::{
-    prelude::{create_scope, Scope, ScopeDisposer},
-    view::View,
-    web::Html,
-};
+use sycamore::prelude::{create_scope, Scope, ScopeDisposer, View};
 
 use crate::{
     errors::{AssetType, ClientError, ClientInvariantError},
@@ -17,7 +13,7 @@ use crate::{
 
 use super::Reactor;
 
-impl<G: Html> Reactor<G> {
+impl Reactor {
     /// Gets the subsequent view, based on the given verdict.
     ///
     /// Note that 'server errors' as constructed by this function are
@@ -34,7 +30,7 @@ impl<G: Html> Reactor<G> {
         &self,
         cx: Scope<'a>,
         verdict: RouteVerdict,
-    ) -> Result<(View<G>, ScopeDisposer<'a>), ClientError> {
+    ) -> Result<(View), ClientError> {
         checkpoint("router_entry");
         // We'll need this for setting the router load state later
         let slim_verdict = verdict.clone();

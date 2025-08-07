@@ -88,23 +88,23 @@ pub fn run_client<M: MutableStore, T: TranslationsManager>(
     // (terminating Perseus and rendering the app inoperable)
     let mut running = true;
     // === IF THIS DISPOSER IS CALLED, PERSEUS WILL TERMINATE! ===
-    let app_disposer = create_scope(|cx| {
+    let app_disposer = create_scope(|| {
         // NOTE: To anyone who ever thinks it might be a good idea to put this whole
-        // thing in a `with_hydration_cx()`, it's not, it's really not.
+        // thing in a `with_hydration_()`, it's not, it's really not.
         running = {
             // Create the reactor
             match Reactor::try_from(app) {
                 Ok(reactor) => {
                     // We're away!
-                    reactor.add_self_to_cx(cx);
-                    let reactor = Reactor::from_cx(cx);
-                    reactor.start(cx)
+                    reactor.add_self_to_();
+                    let reactor = Reactor::from_();
+                    reactor.start()
                 }
                 Err(err) => {
                     // We don't have a reactor, so render a critical popup error, hoping the user
                     // can see something prerendered that makes sense (this
                     // displays and everything)
-                    Reactor::handle_critical_error(cx, err, &error_views);
+                    Reactor::handle_critical_error(err, &error_views);
                     // We can't do anything without a reactor
                     false
                 }
