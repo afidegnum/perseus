@@ -2,7 +2,6 @@
 members = [
 	"packages/*",
     "examples/core/*",
-    "examples/demos/*",
     "examples/comprehensive/*",
     "examples/website/*",
     "website",

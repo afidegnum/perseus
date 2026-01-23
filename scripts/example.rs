@@ -35,9 +35,15 @@ fn main() -> ExitCode {
     #[cfg(windows)]
     let shell_param = "-command";
 
+    // Add --verbose flag for test command to ensure output is visible in non-TTY environments
+    let mut cli_args = args.join(" ");
+    if !args.is_empty() && args[0] == "test" && !cli_args.contains("--verbose") {
+        cli_args.push_str(" --verbose");
+    }
+
     let child = Command::new(shell_exec)
         // We don't provide any quoted arguments to the CLI ever, so this is fine
-        .args([shell_param, &format!("cargo run -- {}", args.join(" "))])
+        .args([shell_param, &format!("cargo run -- {}", cli_args)])
         .current_dir("packages/perseus-cli") // We run on the bleeding-edge version of the CLI, from which we know the example from `TEST_EXAMPLE` above
         .env("TEST_EXAMPLE", &cli_path)
         .spawn()

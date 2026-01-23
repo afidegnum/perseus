@@ -180,7 +180,7 @@ test.cmd = [
     "bonnie test example-all-integrations core suspense",
     "bonnie test example-all-integrations core unreactive",
 ]
-test.desc = "runs all tests headlessly (assumes geckodriver running in background)"
+test.desc = "runs all tests headlessly (automatically starts geckodriver if needed)"
 # This sometimes works, and sometimes fails, depending on the mood of Cargo's caching (just re-run it a few times, restart, the usual)
 test.subcommands.core.cmd = [
     # This will ignore end-to-end tests, but it will run long-running ones
@@ -195,12 +195,14 @@ test.subcommands.cli.cmd = [
 ]
 test.subcommands.cli.desc = "runs the cli tests (all are long-running, this will take a while)"
 test.subcommands.example-all-integrations.cmd = [
+    # Ensure geckodriver is installed and running before running tests
+    "rust-script scripts/ensure_webdriver.rs",
     # Since Perseus 0.5.0, examples use specific integration crates directly,
     # so we only test each example once with its configured integration
     "EXAMPLE_INTEGRATION=axum bonnie dev example %category %example test"
 ]
 test.subcommands.example-all-integrations.args = [ "category", "example" ]
-test.subcommands.example-all-integrations.desc = "tests a single example with its configured integration (assumes geckodriver running in background)"
+test.subcommands.example-all-integrations.desc = "tests a single example with its configured integration (automatically starts geckodriver if needed)"
 
 # Releases the project (maintainers only)
 # We commit all staged files so we can manually bump the Cargo version
