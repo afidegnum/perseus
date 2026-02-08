@@ -31,7 +31,7 @@ use tower_http::services::ServeDir;
 
 use auth::{
     confirm_otp, get_profile, login, logout, register_user, request_password_reset,
-    resend_otp, reset_password,
+    resend_otp, reset_password, update_preferences,
 };
 
 async fn health_check() -> &'static str {
@@ -87,6 +87,7 @@ pub async fn custom_server<M, T>(
         .route("/confirm", post(confirm_otp))
         .route("/resend-otp", post(resend_otp))
         .route("/profile", post(get_profile))
+        .route("/preferences", post(update_preferences))
         .with_state(state.clone());
 
     // Create posts API router
@@ -177,6 +178,11 @@ pub async fn custom_server<M, T>(
         .route("/stats", post(admin::dashboard_stats))
         .route("/users", post(admin::list_users))
         .route("/users/{user_id}", get(admin::get_user))
+        // Support message management
+        .route("/messages", post(support::list_messages))
+        .route("/messages/{id}", get(support::get_message))
+        .route("/messages/{id}/reply", patch(support::update_message))
+        .route("/messages/{id}", delete(support::delete_message))
         .with_state(state.clone());
 
     // Create main API router

@@ -302,7 +302,7 @@ async fn fetch_post_by_slug(slug: &str) -> Result<PostApiResponse, String> {
 }
 
 pub fn get_template() -> Template {
-    Template::build("post/*")
+    Template::build("post")
         .view(post_view_page)
         .build()
 }

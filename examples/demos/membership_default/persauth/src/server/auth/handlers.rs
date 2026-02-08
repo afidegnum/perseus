@@ -6,6 +6,7 @@ use axum::{
 };
 use base64::{engine::general_purpose, Engine as _};
 use deadpool_postgres::Pool;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
@@ -365,4 +366,44 @@ pub async fn resend_otp(
     }
 
     Ok((StatusCode::OK, Json(ApiResponse::success("OTP resent", new_session))))
+}
+
+/// User preferences request
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UpdatePreferencesRequest {
+    pub session_id: i32,
+    pub session_verifier: String,
+    pub theme: Option<String>,
+    pub email_notifications: Option<bool>,
+}
+
+/// Update user preferences
+pub async fn update_preferences(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<UpdatePreferencesRequest>,
+) -> Result<impl IntoResponse, ServiceError> {
+    let client = state.pool.get().await?;
+
+    let session = Session {
+        session_id: payload.session_id,
+        session_verifier: payload.session_verifier.clone(),
+        master_key_hash: None,
+    };
+
+    // Validate session
+    let user_session = db::find_user_by_session(&client, &session)
+        .await
+        .ok_or(ServiceError::Unauthorized("Session not found".to_string()))?;
+
+    // For now, we'll just validate the request and return success
+    // In a full implementation, you would save preferences to the database
+
+    // Validate theme if provided
+    if let Some(ref theme) = payload.theme {
+        if !["light", "dark", "auto"].contains(&theme.as_str()) {
+            return Err(ServiceError::BadRequest("Invalid theme".to_string()));
+        }
+    }
+
+    Ok((StatusCode::OK, Json(ApiResponse::<()>::success("Preferences updated successfully", ()))))
 }

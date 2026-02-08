@@ -16,7 +16,7 @@ use std::sync::Arc;
 pub async fn create_message(
     State(state): State<Arc<AppState>>,
     Json(req): Json<CreateSupportMessageRequest>,
-) -> Result<AxumJson<CreateMessageResponse>, ServiceError> {
+) -> Result<AxumJson<ApiResponse<i32>>, ServiceError> {
     // Clone all values first
     let sender_name = req.sender_name.clone();
     let sender_email = req.sender_email.clone();
@@ -66,7 +66,7 @@ pub async fn create_message(
     let _ = crate::server::mail::send_email(&state.config.srv_cnf, &admin_email, &email_subject, &email_body)
         .map_err(|e| log::error!("Failed to send admin notification email: {}", e));
 
-    Ok(AxumJson(CreateMessageResponse {
+    Ok(AxumJson(ApiResponse {
         success: true,
         message: "Support message created successfully".to_string(),
         data: Some(id),

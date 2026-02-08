@@ -31,6 +31,9 @@ pub fn main() -> PerseusApp {
         .template(templates::contact::get_template())
         .template(templates::dashboard::get_template())
         .template(templates::admin::get_template())
+        .template(templates::preferences::get_template())
+        .template(templates::roles::get_template())
+        .template(templates::support::get_template())
         .error_views(ErrorViews::unlocalized_development_default())
         .index_view(|| {
             view! {

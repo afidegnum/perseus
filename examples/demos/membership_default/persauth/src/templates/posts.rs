@@ -12,7 +12,7 @@ use sycamore::futures::spawn_local;
 use wasm_bindgen::JsValue;
 
 #[cfg(client)]
-use gloo_storage::{LocalStorage, Storage};
+use gloo_storage::Storage;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 struct Post {
@@ -884,12 +884,30 @@ struct SessionData {
 
 #[cfg(client)]
 fn get_session_credentials() -> (i32, String) {
-    let storage_result = LocalStorage::get::<SessionData>("auth_session");
+    let window = match web_sys::window() {
+        Some(w) => w,
+        None => return (0, String::new()),
+    };
 
-    match storage_result {
-        Ok(session) => (session.session_id, session.session_verifier),
-        Err(_) => (0, String::new()),
-    }
+    let storage = match window.local_storage() {
+        Ok(Some(s)) => s,
+        _ => return (0, String::new()),
+    };
+
+    let session_id = storage
+        .get_item("session_id")
+        .ok()
+        .flatten()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0);
+
+    let session_verifier = storage
+        .get_item("session_verifier")
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+
+    (session_id, session_verifier)
 }
 
 #[cfg(client)]
@@ -937,8 +955,13 @@ async fn login_and_get_session(email: &str, password: &str) -> Result<SessionDat
 
     if login_response.success {
         if let Some(session) = login_response.data {
-            // Store session in localStorage
-            let _ = LocalStorage::set("auth_session", &session);
+            // Store session in localStorage (same as login.rs)
+            if let Some(window) = web_sys::window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    let _ = storage.set_item("session_id", &session.session_id.to_string());
+                    let _ = storage.set_item("session_verifier", &session.session_verifier);
+                }
+            }
             Ok(session)
         } else {
             Err("No session data returned".to_string())

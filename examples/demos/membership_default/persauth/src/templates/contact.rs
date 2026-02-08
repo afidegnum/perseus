@@ -39,11 +39,11 @@ async fn get_profile(session: &SessionData) -> Result<ApiResponse<UserProfile>, 
 }
 
 #[cfg(client)]
-async fn create_message(req: &CreateMessageRequest) -> Result<ApiResponse, String> {
+async fn create_message(req: &CreateMessageRequest) -> Result<ApiResponse<i32>, String> {
     use gloo_net::http::Request;
     let response = Request::post("/api/support")
         .json(req).map_err(|e| e.to_string())?.send().await.map_err(|e| e.to_string())?;
-    response.json::<ApiResponse>().await.map_err(|e| e.to_string())
+    response.json::<ApiResponse<i32>>().await.map_err(|e| e.to_string())
 }
 
 #[derive(Clone, Copy)]
@@ -123,12 +123,12 @@ fn contact_page() -> View {
                             body.set(String::new());
                         } else {
                             message.set(response.message);
-                            message_type.set("danger".to_string());
+                            message_type.set("error".to_string());
                         }
                     }
                     Err(e) => {
                         message.set(format!("Error: {}", e));
-                        message_type.set("danger".to_string());
+                        message_type.set("error".to_string());
                     }
                 }
                 submitting.set(false);
