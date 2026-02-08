@@ -162,8 +162,8 @@ impl Reactor {
                     ))
                 };
             }
-            // On the engine-side, this is impossible (we cannot be instructed to fetch)
-            #[cfg(engine)]
+            // On the engine-side (or when no cfg flag is set), this is impossible
+            #[cfg(not(any(client, doc)))]
             None => unreachable!(),
         }
     }
@@ -297,8 +297,8 @@ impl Reactor {
                     ))
                 };
             }
-            // On the engine-side, this is impossible (we cannot be instructed to fetch)
-            #[cfg(engine)]
+            // On the engine-side (or when no cfg flag is set), this is impossible
+            #[cfg(not(any(client, doc)))]
             None => unreachable!(),
         }
     }

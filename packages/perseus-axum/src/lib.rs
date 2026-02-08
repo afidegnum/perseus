@@ -59,6 +59,28 @@ pub async fn get_router<M: MutableStore + 'static, T: TranslationsManager + 'sta
     turbine: &'static Turbine<M, T>,
     opts: ServerOptions,
 ) -> Router {
+    get_router_with_api(turbine, opts, None).await
+}
+
+/// Gets the `Router` needed to configure an existing Axum app for Perseus with
+/// optional custom API routes. The `api_router` parameter allows you to add
+/// REST API endpoints (POST, PUT, DELETE, etc.) that will be handled before
+/// the Perseus page routing fallback.
+///
+/// # Example
+/// ```rust,ignore
+/// use axum::{Router, routing::post};
+///
+/// let api_router = Router::new()
+///     .route("/api/auth/login", post(login_handler));
+///
+/// let router = perseus_axum::get_router_with_api(turbine, opts, Some(api_router)).await;
+/// ```
+pub async fn get_router_with_api<M: MutableStore + 'static, T: TranslationsManager + 'static>(
+    turbine: &'static Turbine<M, T>,
+    opts: ServerOptions,
+    api_router: Option<Router>,
+) -> Router {
     let router = Router::new()
         // --- File handlers ---
         .route(
@@ -153,6 +175,12 @@ pub async fn get_router<M: MutableStore + 'static, T: TranslationsManager + 'sta
         );
     }
 
+    // --- Merge custom API routes (if provided) ---
+    // This must be done before the fallback handler so API routes take precedence
+    if let Some(api) = api_router {
+        router = router.merge(api);
+    }
+
     // --- Initial load handler ---
     router.fallback_service(get(move |http_req: Request<Body>| async move {
         // Since this is a fallback handler, we have to do everything from the request
@@ -180,13 +208,62 @@ pub async fn dflt_server<M: MutableStore + 'static, T: TranslationsManager + 'st
     opts: ServerOptions,
     (host, port): (String, u16),
 ) {
+    dflt_server_with_api(turbine, opts, (host, port), None).await
+}
+
+/// Creates and starts the default Perseus server with Axum, including custom
+/// API routes. This allows you to add REST API endpoints (POST, PUT, DELETE, etc.)
+/// alongside Perseus page routing.
+///
+/// # Example
+/// ```rust,ignore
+/// use axum::{Router, routing::post, Json};
+/// use serde::{Deserialize, Serialize};
+///
+/// #[derive(Deserialize)]
+/// struct LoginRequest {
+///     email: String,
+///     password: String,
+/// }
+///
+/// #[derive(Serialize)]
+/// struct LoginResponse {
+///     token: String,
+/// }
+///
+/// async fn login_handler(Json(req): Json<LoginRequest>) -> Json<LoginResponse> {
+///     // Handle login logic
+///     Json(LoginResponse { token: "...".to_string() })
+/// }
+///
+/// pub async fn server_with_auth<M, T>(
+///     turbine: &'static Turbine<M, T>,
+///     opts: ServerOptions,
+///     (host, port): (String, u16),
+/// ) where
+///     M: MutableStore + 'static,
+///     T: TranslationsManager + 'static,
+/// {
+///     let api_router = Router::new()
+///         .route("/api/auth/login", post(login_handler));
+///
+///     perseus_axum::dflt_server_with_api(turbine, opts, (host, port), Some(api_router)).await
+/// }
+/// ```
+#[cfg(feature = "dflt-server")]
+pub async fn dflt_server_with_api<M: MutableStore + 'static, T: TranslationsManager + 'static>(
+    turbine: &'static Turbine<M, T>,
+    opts: ServerOptions,
+    (host, port): (String, u16),
+    api_router: Option<Router>,
+) {
     use std::net::SocketAddr;
 
     let addr: SocketAddr = format!("{}:{}", host, port)
         .parse()
         .expect("Invalid address provided to bind to.");
 
-    let app = get_router(turbine, opts).await;
+    let app = get_router_with_api(turbine, opts, api_router).await;
 
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
@@ -208,13 +285,29 @@ pub async fn dflt_server_with_compression<
     opts: ServerOptions,
     (host, port): (String, u16),
 ) {
+    dflt_server_with_compression_and_api(turbine, opts, (host, port), None).await
+}
+
+/// Creates and starts the default Perseus server with compression and custom
+/// API routes using Axum. This allows you to add REST API endpoints alongside
+/// Perseus page routing with response compression enabled.
+#[cfg(feature = "dflt-server-with-compression")]
+pub async fn dflt_server_with_compression_and_api<
+    M: MutableStore + 'static,
+    T: TranslationsManager + 'static,
+>(
+    turbine: &'static Turbine<M, T>,
+    opts: ServerOptions,
+    (host, port): (String, u16),
+    api_router: Option<Router>,
+) {
     use std::net::SocketAddr;
 
     let addr: SocketAddr = format!("{}:{}", host, port)
         .parse()
         .expect("Invalid address provided to bind to.");
 
-    let app = get_router(turbine, opts)
+    let app = get_router_with_api(turbine, opts, api_router)
         .await
         .layer(tower_http::compression::CompressionLayer::new());
 

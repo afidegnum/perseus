@@ -1553,26 +1553,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gloo-net"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2899cb1a13be9020b010967adc6b2a8a343b6f1428b90238c9d53ca24decc6db"
-dependencies = [
- "futures-channel",
- "futures-core",
- "futures-sink",
- "gloo-utils",
- "js-sys",
- "pin-project",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
 name = "gloo-timers"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1582,19 +1562,6 @@ dependencies = [
  "futures-core",
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "gloo-utils"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "037fcb07216cb3a30f7292bd0176b050b7b9a052ba830ef7d5d65f6dc64ba58e"
-dependencies = [
- "js-sys",
- "serde",
- "serde_json",
- "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
@@ -2954,19 +2921,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "perseus-example-auth"
-version = "0.5.0"
-dependencies = [
- "perseus",
- "perseus-integration",
- "serde",
- "serde_json",
- "sycamore",
- "tokio",
- "web-sys",
-]
-
-[[package]]
 name = "perseus-example-base"
 version = "0.5.0"
 dependencies = [
@@ -3035,35 +2989,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "perseus-example-fetching"
-version = "0.5.0"
-dependencies = [
- "perseus",
- "perseus-integration",
- "reqwasm",
- "reqwest",
- "serde",
- "serde_json",
- "sycamore",
- "tokio",
-]
-
-[[package]]
 name = "perseus-example-freezing-and-thawing"
 version = "0.3.2"
-dependencies = [
- "fantoccini",
- "perseus",
- "perseus-integration",
- "serde",
- "serde_json",
- "sycamore",
- "tokio",
-]
-
-[[package]]
-name = "perseus-example-full-page-layout"
-version = "0.5.0"
 dependencies = [
  "fantoccini",
  "perseus",
@@ -3672,15 +3599,6 @@ name = "regex-syntax"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
-
-[[package]]
-name = "reqwasm"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05b89870d729c501fa7a68c43bf4d938bbb3a8c156d333d90faa0e8b3e3212fb"
-dependencies = [
- "gloo-net",
-]
 
 [[package]]
 name = "reqwest"
@@ -5191,8 +5109,6 @@ dependencies = [
  "cfg-if 1.0.4",
  "once_cell",
  "rustversion",
- "serde",
- "serde_json",
  "wasm-bindgen-macro",
  "wasm-bindgen-shared",
 ]

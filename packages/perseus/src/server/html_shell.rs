@@ -426,16 +426,29 @@ impl fmt::Display for HtmlShell {
             scripts_after_boundary = self.scripts_after_boundary.join("\n"),
         );
 
-        let shell_with_head = self
-            .shell
-            .replace("<head>", &format!("<head>{}", head_start))
+        // Use regex to match <head> and <body> tags that may have hydration
+        // attributes (e.g. <head data-hk=0.1>) added by Sycamore 0.9.2+ SSR.
+        let head_open_re = Regex::new(r"<head([^>]*)>").expect("Invalid head regex");
+        let shell_with_head = head_open_re
+            .replace(&self.shell, |caps: &regex::Captures| {
+                let attrs = caps.get(1).map_or("", |m| m.as_str());
+                format!("<head{}>{}", attrs, head_start)
+            })
+            .to_string();
+        let shell_with_head = shell_with_head
             .replace("</head>", &format!("{}</head>", head_end));
 
         let body_start = self.before_content.join("\n");
         let body_end = self.after_content.join("\n");
         // We also insert the popup error handler here
-        let shell_with_body = shell_with_head
-            .replace("<body>", &format!("<body>{}", body_start))
+        let body_open_re = Regex::new(r"<body([^>]*)>").expect("Invalid body regex");
+        let shell_with_body = body_open_re
+            .replace(&shell_with_head, |caps: &regex::Captures| {
+                let attrs = caps.get(1).map_or("", |m| m.as_str());
+                format!("<body{}>{}", attrs, body_start)
+            })
+            .to_string();
+        let shell_with_body = shell_with_body
             .replace(
                 "</body>",
                 &format!(

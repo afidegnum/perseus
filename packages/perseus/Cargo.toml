@@ -127,6 +127,9 @@ hsr = ["live-reload", "idb-freezing"]
 # Enables reactive versions of common Rust collections, like `Vec<T>` and `HashMap<K, V>`. (Note that `RxResult` is always present, as it's needed for suspended state.)
 rx-collections = []
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(engine)', 'cfg(client)', 'cfg(clientdoc)'] }
+
 [package.metadata.docs.rs]
 rustc-args = ["--cfg=engine", "--cfg=clientdoc"]
 rustdoc-args = ["--cfg=engine", "--cfg=clientdoc"]
