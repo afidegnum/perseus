@@ -27,18 +27,18 @@ fn preferences_page() -> View {
         // Simple navigation header
         nav(class = "navbar", style = "background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;") {
             div(class = "navbar-brand", style = "display: flex; align-items: center; gap: 10px;") {
-                a(href = "/", style = "font-size: 1.25rem; font-weight: 700; color: #333; text-decoration: none;") {
+                Link(to = "/", style = "font-size: 1.25rem; font-weight: 700; color: #333; text-decoration: none;") {
                     span(style = "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;") { "Perseus" }
                     span(style = "color: #666; font-weight: 400;") { "Membership" }
                 }
             }
             div(class = "navbar-nav", style = "display: flex; gap: 0.5rem; align-items: center;") {
-                a(href = "/dashboard", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Dashboard" }
-                a(href = "/posts", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Posts" }
-                a(href = "/profile", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Profile" }
-                a(href = "/preferences", style = "display: inline-block; padding: 0.5rem 1rem; color: #667eea; background: rgba(102,126,234,0.1); text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Preferences" }
-                a(href = "/contact", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Contact" }
-                a(href = "/logout", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Logout" }
+                Link(to = "/dashboard", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Dashboard" }
+                Link(to = "/posts", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Posts" }
+                Link(to = "/profile", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Profile" }
+                Link(to = "/preferences", style = "display: inline-block; padding: 0.5rem 1rem; color: #667eea; background: rgba(102,126,234,0.1); text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Preferences" }
+                Link(to = "/contact", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Contact" }
+                Link(to = "/logout", style = "display: inline-block; padding: 0.5rem 1rem; color: #495057; text-decoration: none; border-radius: 4px; font-size: 0.875rem; font-weight: 500;") { "Logout" }
             }
         }
 
@@ -53,7 +53,7 @@ fn preferences_page() -> View {
                         div(class = "alert alert-info") {
                             strong { "Loading..." }
                             " Your preferences are being loaded. Please wait or "
-                            a(href = "/login", style = "color: inherit; text-decoration: underline;") { "log in" }
+                            Link(to = "/login", style = "color: inherit; text-decoration: underline;") { "log in" }
                             " if you are not authenticated."
                         }
                     }
@@ -65,7 +65,7 @@ fn preferences_page() -> View {
                     }
                     div(class = "card-body") {
                         p(class = "text-muted") { "Sign in to view and manage your account settings, including theme preferences and notification options." }
-                        a(href = "/login", class = "btn btn-primary") { "Login to Your Account" }
+                        Link(to = "/login", class = "btn btn-primary") { "Login to Your Account" }
                     }
                 }
 
@@ -79,14 +79,14 @@ fn preferences_page() -> View {
                                 div(class = "form-group") {
                                     label { "Two-Factor Authentication" }
                                     p(class = "text-muted", style = "font-size: 0.875rem;") { "Add an extra layer of security to your account" }
-                                    a(href = "/profile", class = "btn btn-secondary btn-sm") { "Configure in Profile" }
+                                    Link(to = "/profile", class = "btn btn-secondary btn-sm") { "Configure in Profile" }
                                 }
                             }
                             div(class = "col-md-6") {
                                 div(class = "form-group") {
                                     label { "Password" }
                                     p(class = "text-muted", style = "font-size: 0.875rem;") { "Change your password regularly to keep your account secure" }
-                                    a(href = "/profile", class = "btn btn-secondary btn-sm") { "Change Password" }
+                                    Link(to = "/profile", class = "btn btn-secondary btn-sm") { "Change Password" }
                                 }
                             }
                         }

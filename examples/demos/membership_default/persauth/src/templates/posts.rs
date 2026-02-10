@@ -364,7 +364,7 @@ fn posts_page() -> View {
                         }
                     } else {
                         view! {
-                            a(href = "/login", style = "display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; border-radius: 8px; text-decoration: none; font-weight: 500;") {
+                            Link(to = "/login", style = "display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; border-radius: 8px; text-decoration: none; font-weight: 500;") {
                                 "Login to Create Posts"
                             }
                         }
@@ -731,7 +731,7 @@ fn posts_page() -> View {
             })
 
             div(class = "nav-links", style = "margin-top: 1.5rem;") {
-                a(href = "/") { "Back to Home" }
+                Link(to = "/") { "Back to Home" }
             }
         }
     }

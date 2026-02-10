@@ -114,7 +114,7 @@ fn post_view_page() -> View {
                             h1(style = "color: #dc3545;") { "Post Not Found" }
                             p(style = "color: #666;") { (err_msg) }
                             div(class = "nav-links", style = "margin-top: 1.5rem;") {
-                                a(href = "/") { "Back to Home" }
+                                Link(to = "/") { "Back to Home" }
                             }
                         }
                     }
@@ -165,7 +165,7 @@ fn post_view_page() -> View {
 
                                 footer(style = "margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0;") {
                                     div(class = "nav-links") {
-                                        a(href = "/") { "Back to Home" }
+                                        Link(to = "/") { "Back to Home" }
                                     }
                                 }
                             }
@@ -201,7 +201,7 @@ fn post_view_page() -> View {
 
                                 footer(style = "margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0;") {
                                     div(class = "nav-links") {
-                                        a(href = "/") { "Back to Home" }
+                                        Link(to = "/") { "Back to Home" }
                                     }
                                 }
                             }

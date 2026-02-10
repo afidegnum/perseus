@@ -108,7 +108,8 @@ fn admin_page() -> View {
 
     #[cfg(engine)]
     {
-        loading.set(false);
+        // Keep `loading` true on the engine so the initial SSR markup matches the
+        // initial client-side view during hydration.
     }
 
     let set_tab = move |tab: AdminTab| {
@@ -128,7 +129,7 @@ fn admin_page() -> View {
                         }
                         div(class = "col-lg-6") {
                             ol(class = "breadcrumb") {
-                                li(class = "breadcrumb-item") { a(href = "/") { "Home" } }
+                                li(class = "breadcrumb-item") { Link(to = "/") { "Home" } }
                                 li(class = "breadcrumb-item active") { "Dashboard" }
                             }
                         }
@@ -143,7 +144,7 @@ fn admin_page() -> View {
                             div(class = "card-body") {
                                 h4 { "Access Denied" }
                                 p { "You don't have permission to access the admin dashboard." }
-                                a(href = "/", class = "btn btn-primary") { "Go Home" }
+                                Link(to = "/", class = "btn btn-primary") { "Go Home" }
                             }
                         }
                     }
@@ -221,9 +222,12 @@ fn admin_page() -> View {
                                 } else if matches!(active_tab.get(), AdminTab::Users) {
                                     view! {
                                         div(class = "card") {
-                                            div(class = "card-header") { h5 { "User Management" } }
+                                            div(class = "card-header") {
+                                                h5 { "User Management" }
+                                                span(class = "d-block m-t-5", style = "color: #6c757d; font-size: 0.875rem;") { "Manage user accounts and role assignments" }
+                                            }
                                             div(class = "card-body") {
-                                                p(class = "text-muted") { "User management features coming soon..." }
+                                                Link(to = "/admin/users", class = "btn btn-primary") { "Go to User Management" }
                                             }
                                         }
                                     }

@@ -25,6 +25,7 @@ pub fn main() -> PerseusApp {
         .template(templates::login::get_template())
         .template(templates::posts::get_template())
         .template(templates::post_view::get_template())
+        .template(templates::create_post::get_template())
         .template(templates::categories::get_template())
         .template(templates::tags::get_template())
         .template(templates::profile::get_template())
@@ -32,8 +33,10 @@ pub fn main() -> PerseusApp {
         .template(templates::dashboard::get_template())
         .template(templates::admin::get_template())
         .template(templates::preferences::get_template())
+        .template(templates::logout::get_template())
         .template(templates::roles::get_template())
         .template(templates::support::get_template())
+        .template(templates::users::get_template())
         .error_views(ErrorViews::unlocalized_development_default())
         .index_view(|| {
             view! {

@@ -160,7 +160,7 @@ fn login_page() -> View {
                         div(class = "nav-links") {
                             a(href = "#", on:click = toggle_reset) { "Forgot password?" }
                             " | "
-                            a(href = "/register") { "Create account" }
+                            Link(to = "/register") { "Create account" }
                         }
                     }
                 } else {

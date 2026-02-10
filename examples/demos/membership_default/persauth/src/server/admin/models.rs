@@ -8,7 +8,7 @@ pub struct AdminUserView {
     pub email: String,
     pub roles: Vec<String>,
     pub otp_confirmed: bool,
-    pub created_at: NaiveDateTime,
+    pub created_at: String,
 }
 
 /// Dashboard statistics

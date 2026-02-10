@@ -312,7 +312,7 @@ fn profile_page() -> View {
                     view! {
                         div(style = "text-align: center; padding: 2rem;") {
                             p(style = "color: #666;") { "Please log in to view your profile." }
-                            a(href = "/login", style = "color: #667eea;") { "Go to Login" }
+                            Link(to = "/login", style = "color: #667eea;") { "Go to Login" }
                         }
                     }
                 } else {
@@ -321,7 +321,7 @@ fn profile_page() -> View {
             }
 
             div(class = "nav-links", style = "margin-top: 1.5rem;") {
-                a(href = "/") { "Back to Home" }
+                Link(to = "/") { "Back to Home" }
             }
         }
     }

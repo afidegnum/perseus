@@ -325,7 +325,7 @@ fn tags_page() -> View {
             })
 
             div(class = "nav-links", style = "margin-top: 1.5rem;") {
-                a(href = "/") { "Back to Home" }
+                Link(to = "/") { "Back to Home" }
             }
         }
     }

@@ -202,7 +202,7 @@ fn register_page() -> View {
 
                         div(class = "nav-links") {
                             "Already have an account? "
-                            a(href = "/login") { "Sign in" }
+                            Link(to = "/login") { "Sign in" }
                         }
                     }
                 } else {

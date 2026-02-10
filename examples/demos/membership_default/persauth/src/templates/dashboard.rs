@@ -122,7 +122,7 @@ fn dashboard_page() -> View {
                         }
                         div(class = "col-lg-6") {
                             ol(class = "breadcrumb") {
-                                li(class = "breadcrumb-item") { a(href = "/") { "Home" } }
+                                li(class = "breadcrumb-item") { Link(to = "/") { "Home" } }
                                 li(class = "breadcrumb-item active") { "Dashboard" }
                             }
                         }
@@ -137,7 +137,7 @@ fn dashboard_page() -> View {
                             div(class = "card-body") {
                                 h4 { "Please Log In" }
                                 p { "You need to be logged in to view your dashboard." }
-                                a(href = "/login", class = "btn btn-primary") { "Login" }
+                                Link(to = "/login", class = "btn btn-primary") { "Login" }
                             }
                         }
                     }
@@ -163,7 +163,7 @@ fn dashboard_page() -> View {
                                         }
                                         hr { }
                                         ul(class = "profile-social") {
-                                            li { a(href = "/profile", class = "btn btn-primary btn-block") { "Edit Profile" } }
+                                            li { Link(to = "/profile", class = "btn btn-primary btn-block") { "Edit Profile" } }
                                             li { button(class = "btn btn-secondary btn-block", on:click = handle_logout) { "Logout" } }
                                         }
                                         div(class = "table-responsive") {
@@ -202,21 +202,21 @@ fn dashboard_page() -> View {
                                             div(class = "card-body") {
                                                 div(class = "row") {
                                                     div(class = "col-sm-4") {
-                                                        a(href = "/posts", class = "btn btn-primary btn-block") {
+                                                        Link(to = "/posts", class = "btn btn-primary btn-block") {
                                                             i(class = "feather icon-file-text m-r-10") "View Posts"
                                                         }
                                                     }
                                                     (if has_create_posts.get() {
                                                         view! {
                                                             div(class = "col-sm-4") {
-                                                                a(href = "/posts/create", class = "btn btn-secondary btn-block") {
+                                                                Link(to = "/posts/create", class = "btn btn-secondary btn-block") {
                                                                     i(class = "feather icon-plus m-r-10") "New Post"
                                                                 }
                                                             }
                                                         }
                                                     } else { view! {} })
                                                     div(class = "col-sm-4") {
-                                                        a(href = "/contact", class = "btn btn-info btn-block") {
+                                                        Link(to = "/contact", class = "btn btn-info btn-block") {
                                                             i(class = "feather icon-message-square m-r-10") "Contact Us"
                                                         }
                                                     }
@@ -229,7 +229,7 @@ fn dashboard_page() -> View {
                                         div(class = "card") {
                                             div(class = "card-header") {
                                                 h5 { "My Support Messages" }
-                                                a(href = "/contact", class = "btn btn-sm btn-primary") { "New Message" }
+                                                Link(to = "/contact", class = "btn btn-sm btn-primary") { "New Message" }
                                             }
                                             div(class = "card-body") {
                                                 p(class = "text-center text-muted") { "Your support messages will appear here." }

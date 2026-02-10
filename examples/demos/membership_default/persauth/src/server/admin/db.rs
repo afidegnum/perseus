@@ -84,98 +84,70 @@ pub async fn list_users_db(
 ) -> Result<(Vec<AdminUserView>, i64), Box<dyn std::error::Error>> {
     let client = pool.get().await?;
 
-    // Build the query - use DISTINCT to avoid duplicate rows from joins
-    let query = if let Some(role) = role {
-        r#"
-        SELECT DISTINCT u.user_id, u.email, u.created_at,
-               (SELECT bool_or(otp_code_confirmed) FROM sessions WHERE user_id = u.user_id) as otp_confirmed
-        FROM users u
-        LEFT JOIN user_roles ur ON u.user_id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.id
-        WHERE ($1::text IS NULL OR u.email ILIKE $1 || '%')
-          AND r.name = $2
-        ORDER BY u.created_at DESC
-        LIMIT $3 OFFSET $4
-        "#
-    } else {
-        r#"
-        SELECT u.user_id, u.email, u.created_at,
-               (SELECT bool_or(otp_code_confirmed) FROM sessions WHERE user_id = u.user_id) as otp_confirmed
-        FROM users u
-        WHERE $1::text IS NULL OR u.email ILIKE $1 || '%'
-        ORDER BY u.created_at DESC
-        LIMIT $2 OFFSET $3
-        "#
-    };
+    // Keep queries parameterized. Do not build SQL by concatenating user input.
+    let search_pattern = search.map(|s| format!("{}%", s));
 
-    // Get total count
-    let count_query = if let Some(role) = role {
-        r#"
-        SELECT COUNT(DISTINCT u.user_id) FROM users u
-        LEFT JOIN user_roles ur ON u.user_id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.id
-        WHERE ($1::text IS NULL OR u.email ILIKE $1 || '%')
-          AND r.name = $2
-        "#
-    } else {
-        r#"
-        SELECT COUNT(*) FROM users u
-        WHERE $1::text IS NULL OR u.email ILIKE $1 || '%'
-        "#
-    };
+    let total: i64 = client
+        .query_one(
+            r#"
+            SELECT COUNT(*) FROM users u
+            WHERE ($1::text IS NULL OR u.email ILIKE $1)
+              AND ($2::text IS NULL OR EXISTS (
+                    SELECT 1
+                    FROM user_roles ur
+                    JOIN roles r ON r.id = ur.role_id
+                    WHERE ur.user_id = u.user_id AND r.name = $2
+              ))
+            "#,
+            &[&search_pattern, &role],
+        )
+        .await?
+        .get(0);
 
-    let total: i64 = if let Some(role) = role {
-        client
-            .query_one(count_query, &[&search, &role])
-            .await?
-            .get(0)
-    } else {
-        client
-            .query_one(count_query, &[&search])
-            .await?
-            .get(0)
-    };
+    let rows: Vec<Row> = client
+        .query(
+            r#"
+            SELECT
+                u.user_id,
+                u.email,
+                u.created_at,
+                COALESCE(bool_or(s.otp_code_confirmed), false) AS otp_confirmed,
+                COALESCE(
+                    array_agg(DISTINCT r.name) FILTER (WHERE r.name IS NOT NULL),
+                    ARRAY[]::text[]
+                ) AS roles
+            FROM users u
+            LEFT JOIN sessions s ON s.user_id = u.user_id
+            LEFT JOIN user_roles ur ON ur.user_id = u.user_id
+            LEFT JOIN roles r ON r.id = ur.role_id
+            WHERE ($1::text IS NULL OR u.email ILIKE $1)
+              AND ($2::text IS NULL OR EXISTS (
+                    SELECT 1
+                    FROM user_roles ur2
+                    JOIN roles r2 ON r2.id = ur2.role_id
+                    WHERE ur2.user_id = u.user_id AND r2.name = $2
+              ))
+            GROUP BY u.user_id, u.email, u.created_at
+            ORDER BY u.created_at DESC
+            LIMIT $3 OFFSET $4
+            "#,
+            &[&search_pattern, &role, &limit, &offset],
+        )
+        .await?;
 
-    let rows: Vec<Row> = if let Some(role) = role {
-        client
-            .query(query, &[&search, &role, &limit, &offset])
-            .await?
-    } else {
-        client
-            .query(query, &[&search, &limit, &offset])
-            .await?
-    };
-
-    let mut users: Vec<AdminUserView> = Vec::new();
-    for row in rows {
-        let user_id: i32 = row.get("user_id");
-        let email: String = row.get("email");
-        let created_at: NaiveDateTime = row.get("created_at");
-        let otp_confirmed: bool = row.get("otp_confirmed");
-
-        // Get roles for this user
-        let roles_rows: Vec<Row> = client
-            .query(
-                "SELECT r.name FROM roles r
-                 JOIN user_roles ur ON r.id = ur.role_id
-                 WHERE ur.user_id = $1",
-                &[&user_id],
-            )
-            .await?;
-
-        let roles: Vec<String> = roles_rows
-            .into_iter()
-            .map(|r| r.get("name"))
-            .collect();
-
-        users.push(AdminUserView {
-            user_id,
-            email,
-            roles,
-            otp_confirmed,
-            created_at,
-        });
-    }
+    let users: Vec<AdminUserView> = rows
+        .into_iter()
+        .map(|row| {
+            let created_at: chrono::NaiveDateTime = row.get("created_at");
+            AdminUserView {
+                user_id: row.get("user_id"),
+                email: row.get("email"),
+                roles: row.get("roles"),
+                otp_confirmed: row.get("otp_confirmed"),
+                created_at: created_at.to_string(),
+            }
+        })
+        .collect();
 
     Ok((users, total))
 }
@@ -231,7 +203,7 @@ pub async fn get_user_detail(
                 email,
                 roles,
                 otp_confirmed,
-                created_at,
+                created_at: created_at.to_string(),
             }))
         }
         None => Ok(None),

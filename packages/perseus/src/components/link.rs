@@ -41,6 +41,9 @@ pub struct LinkProps {
     /// Optional CSS class(es) for the anchor element.
     #[prop(default, setter(into))]
     pub class: Option<String>,
+    /// Optional inline CSS style(s) for the anchor element.
+    #[prop(default, setter(into))]
+    pub style: Option<String>,
     /// The content to display inside the link.
     pub children: Children,
 }
@@ -51,6 +54,7 @@ impl fmt::Debug for LinkProps {
             .field("to", &self.to)
             .field("id", &self.id)
             .field("class", &self.class)
+            .field("style", &self.style)
             .field("children", &"<Children>")
             .finish()
     }
@@ -88,6 +92,7 @@ pub fn Link(props: LinkProps) -> View {
         to,
         id,
         class,
+        style,
         children,
     } = props;
 
@@ -115,17 +120,29 @@ pub fn Link(props: LinkProps) -> View {
 
     #[cfg(client)]
     {
-        match (id, class) {
-            (Some(id), Some(class)) => view! {
+        match (id, class, style) {
+            (Some(id), Some(class), Some(style)) => view! {
+                a(href = href, id = id, class = class, style = style, on:click = on_click) { (children) }
+            },
+            (Some(id), Some(class), None) => view! {
                 a(href = href, id = id, class = class, on:click = on_click) { (children) }
             },
-            (Some(id), None) => view! {
+            (Some(id), None, Some(style)) => view! {
+                a(href = href, id = id, style = style, on:click = on_click) { (children) }
+            },
+            (Some(id), None, None) => view! {
                 a(href = href, id = id, on:click = on_click) { (children) }
             },
-            (None, Some(class)) => view! {
+            (None, Some(class), Some(style)) => view! {
+                a(href = href, class = class, style = style, on:click = on_click) { (children) }
+            },
+            (None, Some(class), None) => view! {
                 a(href = href, class = class, on:click = on_click) { (children) }
             },
-            (None, None) => view! {
+            (None, None, Some(style)) => view! {
+                a(href = href, style = style, on:click = on_click) { (children) }
+            },
+            (None, None, None) => view! {
                 a(href = href, on:click = on_click) { (children) }
             },
         }
@@ -133,17 +150,29 @@ pub fn Link(props: LinkProps) -> View {
 
     #[cfg(not(client))]
     {
-        match (id, class) {
-            (Some(id), Some(class)) => view! {
+        match (id, class, style) {
+            (Some(id), Some(class), Some(style)) => view! {
+                a(href = href, id = id, class = class, style = style) { (children) }
+            },
+            (Some(id), Some(class), None) => view! {
                 a(href = href, id = id, class = class) { (children) }
             },
-            (Some(id), None) => view! {
+            (Some(id), None, Some(style)) => view! {
+                a(href = href, id = id, style = style) { (children) }
+            },
+            (Some(id), None, None) => view! {
                 a(href = href, id = id) { (children) }
             },
-            (None, Some(class)) => view! {
+            (None, Some(class), Some(style)) => view! {
+                a(href = href, class = class, style = style) { (children) }
+            },
+            (None, Some(class), None) => view! {
                 a(href = href, class = class) { (children) }
             },
-            (None, None) => view! {
+            (None, None, Some(style)) => view! {
+                a(href = href, style = style) { (children) }
+            },
+            (None, None, None) => view! {
                 a(href = href) { (children) }
             },
         }
