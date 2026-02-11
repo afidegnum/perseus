@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sycamore::prelude::*;
 
 #[cfg(client)]
-use sycawysgy::{Editor, EditorState, Delta, render_delta_to_html};
+use sycawysgy::{Editor, Delta, render_delta_to_html};
 
 #[cfg(client)]
 use sycamore::futures::spawn_local;
@@ -153,7 +153,14 @@ fn posts_page() -> View {
             editor_og_image.set(String::new());
             editor_is_published.set(false);
             show_seo_section.set(false);
-            show_editor.set(true);
+            #[cfg(client)]
+            {
+                let show_editor = show_editor.clone();
+                spawn_local(async move {
+                    let _ = overwrite_editor_document(Delta::new().insert("\n")).await;
+                    show_editor.set(true);
+                });
+            }
         }
     };
 
@@ -190,7 +197,19 @@ fn posts_page() -> View {
             editor_is_published.set(post.is_published);
             show_seo_section.set(false);
             editing_post.set(Some(post));
-            show_editor.set(true);
+            #[cfg(client)]
+            {
+                let show_editor = show_editor.clone();
+                let delta = editing_post
+                    .get_clone()
+                    .and_then(|p| p.content_delta)
+                    .and_then(|d| serde_json::from_value::<Delta>(d).ok())
+                    .unwrap_or_else(|| Delta::new().insert("\n"));
+                spawn_local(async move {
+                    let _ = overwrite_editor_document(delta).await;
+                    show_editor.set(true);
+                });
+            }
         }
     };
 
@@ -226,12 +245,6 @@ fn posts_page() -> View {
         move |_| {
             #[cfg(client)]
             {
-                // Get EditorState to access Delta content
-                let state = use_context::<EditorState>();
-                let delta = state.content.get_clone();
-                let content_delta: serde_json::Value = serde_json::to_value(&delta).unwrap_or_default();
-                let content = render_delta_to_html(&delta);
-
                 let posts = posts.clone();
                 let editing_post = editing_post.clone();
                 let editor_title = editor_title.clone();
@@ -249,6 +262,20 @@ fn posts_page() -> View {
                     saving.set(true);
                     error_message.set(String::new());
                     success_message.set(String::new());
+
+                    // sycawysgy keeps its internal `EditorState` in a child context (provided by
+                    // the `Editor` component). Since this template is the parent, we can't read
+                    // that context here. Instead, we read the HTML directly from the editor DOM,
+                    // and attempt to load the latest Delta from IndexedDB (best-effort).
+                    let delta = load_editor_delta().await.unwrap_or_else(|_| Delta::new().insert("\n"));
+                    let content_delta: serde_json::Value =
+                        serde_json::to_value(&delta).unwrap_or_default();
+                    let content_html = get_editor_html("#posts-editor");
+                    let content = if content_html.trim().is_empty() {
+                        render_delta_to_html(&delta)
+                    } else {
+                        content_html
+                    };
 
                     let title = editor_title.get_clone();
                     let summary = editor_summary.get_clone();
@@ -533,8 +560,8 @@ fn posts_page() -> View {
                                 "You need to be logged in to create or edit posts. Please log in to continue."
                             }
                             div(style = "display: flex; gap: 1rem; justify-content: center;") {
-                                a(
-                                    href = "/login",
+                                Link(
+                                    to = "/login",
                                     style = "display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background: #667eea; color: white; border-radius: 8px; text-decoration: none; font-weight: 500;"
                                 ) { "Login" }
                                 button(
@@ -596,34 +623,10 @@ fn posts_page() -> View {
                                 ({
                                     #[cfg(client)]
                                     {
-                                        // Load existing content_delta when editing
-                                        let editing_post_val = editing_post_clone.get_clone();
-                                        let has_content = editing_post_val.as_ref().and_then(|p| p.content_delta.as_ref()).is_some();
-
                                         view! {
-                                            Editor {}
-
-                                            // Load existing content if editing
-                                            (if is_editing && has_content {
-                                                let state = use_context::<EditorState>();
-                                                let delta = editing_post_val.as_ref()
-                                                    .and_then(|p| p.content_delta.as_ref())
-                                                    .and_then(|d| serde_json::from_value::<Delta>(d.clone()).ok());
-                                                if let Some(existing_delta) = delta {
-                                                    view! {
-                                                        button(
-                                                            on:click = move |_| {
-                                                                state.content.set(existing_delta.clone());
-                                                            },
-                                                            style = "margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;"
-                                                        ) { "Load Original" }
-                                                    }
-                                                } else {
-                                                    view! {}
-                                                }
-                                            } else {
-                                                view! {}
-                                            })
+                                            div(id = "posts-editor") {
+                                                Editor {}
+                                            }
                                         }
                                     }
                                     #[cfg(engine)]
@@ -969,6 +972,45 @@ async fn login_and_get_session(email: &str, password: &str) -> Result<SessionDat
     } else {
         Err(login_response.message)
     }
+}
+
+// sycawysgy bridge helpers (client-side).
+//
+// sycawysgy's `EditorState` is provided via a *child* context inside the `Editor` component,
+// which this template can't access (parents can't read child-provided context).
+// For this demo, we use IndexedDB as the transfer mechanism for Delta and read editor HTML from
+// the DOM for the rendered content.
+#[cfg(client)]
+fn get_editor_html(container_selector: &str) -> String {
+    let document = match web_sys::window().and_then(|w| w.document()) {
+        Some(d) => d,
+        None => return String::new(),
+    };
+    let selector = format!("{container_selector} .editor-content");
+    match document.query_selector(&selector) {
+        Ok(Some(el)) => el.inner_html(),
+        _ => String::new(),
+    }
+}
+
+#[cfg(client)]
+async fn overwrite_editor_document(delta: Delta) -> Result<(), String> {
+    let rexie = sycawysgy::storage::init_db().await?;
+    let doc = sycawysgy::Document::with_content(
+        "default".to_string(),
+        "Untitled".to_string(),
+        delta,
+    );
+    sycawysgy::storage::save_document(&rexie, &doc).await
+}
+
+#[cfg(client)]
+async fn load_editor_delta() -> Result<Delta, String> {
+    let rexie = sycawysgy::storage::init_db().await?;
+    let doc = sycawysgy::storage::load_document(&rexie).await?;
+    Ok(doc
+        .map(|d| d.content)
+        .unwrap_or_else(|| Delta::new().insert("\n")))
 }
 
 pub fn get_template() -> Template {

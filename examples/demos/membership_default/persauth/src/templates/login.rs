@@ -158,7 +158,11 @@ fn login_page() -> View {
                         }
 
                         div(class = "nav-links") {
-                            a(href = "#", on:click = toggle_reset) { "Forgot password?" }
+                            button(
+                                r#type = "button",
+                                on:click = toggle_reset,
+                                style = "background: none; border: none; padding: 0; color: #667eea; text-decoration: underline; cursor: pointer;"
+                            ) { "Forgot password?" }
                             " | "
                             Link(to = "/register") { "Create account" }
                         }

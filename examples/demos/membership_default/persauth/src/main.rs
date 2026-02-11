@@ -220,6 +220,25 @@ pub fn main() -> PerseusApp {
                                 .image-upload-indicator.visible {
                                     display: block;
                                 }
+                                /* Generic Modal Overlay (used by demo admin pages) */
+                                .link-modal-overlay {
+                                    position: fixed;
+                                    top: 0;
+                                    left: 0;
+                                    right: 0;
+                                    bottom: 0;
+                                    padding: 1.5rem;
+                                    background: rgba(0, 0, 0, 0.55);
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    z-index: 1100;
+                                }
+                                @media (max-width: 640px) {
+                                    .link-modal-overlay {
+                                        padding: 0.75rem;
+                                    }
+                                }
                                 /* Link Dialog Styles */
                                 .link-dialog-overlay {
                                     position: fixed;

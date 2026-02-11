@@ -8,6 +8,13 @@ use sycamore::futures::spawn_local;
 #[cfg(client)]
 use sycawysgy::{Delta, render_delta_to_html};
 
+#[derive(Serialize, Deserialize, Clone, ReactiveState)]
+#[rx(alias = "PostViewStateRx")]
+struct PostViewState {
+    /// The slug portion after `/post/`.
+    slug: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
 struct PostData {
     id: i32,
@@ -44,25 +51,16 @@ enum ViewState {
     Empty,
 }
 
-fn post_view_page() -> View {
+fn post_view_page(state: PostViewStateRx) -> View {
     let view_state = create_signal(ViewState::Loading);
 
     // Client-side fetching
     #[cfg(client)]
     {
         let view_state = view_state.clone();
+        let slug = state.slug.get_clone();
 
         spawn_local(async move {
-            // Get slug from URL
-            let slug = web_sys::window()
-                .and_then(|w| w.location().pathname().ok())
-                .map(|path| {
-                    path.trim_start_matches("/post/")
-                        .trim_end_matches('/')
-                        .to_string()
-                })
-                .unwrap_or_default();
-
             if slug.is_empty() {
                 view_state.set(ViewState::Error("Invalid post URL".to_string()));
                 return;
@@ -95,7 +93,7 @@ fn post_view_page() -> View {
 
     #[cfg(engine)]
     {
-        view_state.set(ViewState::Empty);
+        // Keep the initial `Loading` state so the SSR markup matches the initial client view.
     }
 
     view! {
@@ -290,7 +288,7 @@ fn update_or_create_meta(document: &web_sys::Document, attr_type: &str, attr_nam
 async fn fetch_post_by_slug(slug: &str) -> Result<PostApiResponse, String> {
     use gloo_net::http::Request;
 
-    let response = Request::get(&format!("/posts/slug/{}", slug))
+    let response = Request::get(&format!("/api/posts/slug/{}", slug))
         .send()
         .await
         .map_err(|e| e.to_string())?;
@@ -301,8 +299,28 @@ async fn fetch_post_by_slug(slug: &str) -> Result<PostApiResponse, String> {
         .map_err(|e| e.to_string())
 }
 
+#[engine_only_fn]
+async fn get_build_paths() -> BuildPaths {
+    BuildPaths {
+        // Build the template root once so it exists, and rely on incremental generation for
+        // `/post/<slug>`.
+        paths: vec![String::new()],
+        extra: ().into(),
+    }
+}
+
+#[engine_only_fn]
+async fn get_build_state(
+    StateGeneratorInfo { path, .. }: StateGeneratorInfo<()>,
+) -> Result<PostViewState, BlamedError<anyhow::Error>> {
+    Ok(PostViewState { slug: path })
+}
+
 pub fn get_template() -> Template {
     Template::build("post")
-        .view(post_view_page)
+        .build_paths_fn(get_build_paths)
+        .build_state_fn(get_build_state)
+        .incremental_generation()
+        .view_with_state(post_view_page)
         .build()
 }

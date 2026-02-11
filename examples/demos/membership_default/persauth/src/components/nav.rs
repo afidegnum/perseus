@@ -1,8 +1,5 @@
 use perseus::prelude::*;
-use serde::{Deserialize, Serialize};
 use sycamore::prelude::*;
-
-use crate::types::SessionData;
 
 /// Navigation component props
 #[derive(Clone)]
@@ -15,19 +12,19 @@ pub fn navbar(props: NavProps) -> View {
     view! {
         nav(class = "navbar", style = "background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center;") {
             div(class = "navbar-brand", style = "display: flex; align-items: center; gap: 10px;") {
-                a(href = "/", style = "font-size: 1.25rem; font-weight: 700; color: #333; text-decoration: none;") {
+                Link(to = "/", style = "font-size: 1.25rem; font-weight: 700; color: #333; text-decoration: none;") {
                     span(style = "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;") { "Perseus" }
                     span(style = "color: #666; font-weight: 400;") { "Membership" }
                 }
             }
             div(class = "navbar-nav", style = "display: flex; gap: 0.5rem; align-items: center;") {
-                a(href = "/dashboard", class = if props.current_page == "dashboard" { "nav-link active" } else { "nav-link" }) { "Dashboard" }
-                a(href = "/posts", class = if props.current_page == "posts" { "nav-link active" } else { "nav-link" }) { "Posts" }
-                a(href = "/profile", class = if props.current_page == "profile" { "nav-link active" } else { "nav-link" }) { "Profile" }
-                a(href = "/preferences", class = if props.current_page == "preferences" { "nav-link active" } else { "nav-link" }) { "Preferences" }
-                a(href = "/contact", class = if props.current_page == "contact" { "nav-link active" } else { "nav-link" }) { "Contact" }
-                a(href = "/login", class = if props.current_page == "login" { "nav-link active" } else { "nav-link" }) { "Login" }
-                a(href = "/register", class = if props.current_page == "register" { "nav-link active" } else { "nav-link" }) { "Register" }
+                Link(to = "/dashboard", class = if props.current_page == "dashboard" { "nav-link active" } else { "nav-link" }) { "Dashboard" }
+                Link(to = "/posts", class = if props.current_page == "posts" { "nav-link active" } else { "nav-link" }) { "Posts" }
+                Link(to = "/profile", class = if props.current_page == "profile" { "nav-link active" } else { "nav-link" }) { "Profile" }
+                Link(to = "/preferences", class = if props.current_page == "preferences" { "nav-link active" } else { "nav-link" }) { "Preferences" }
+                Link(to = "/contact", class = if props.current_page == "contact" { "nav-link active" } else { "nav-link" }) { "Contact" }
+                Link(to = "/login", class = if props.current_page == "login" { "nav-link active" } else { "nav-link" }) { "Login" }
+                Link(to = "/register", class = if props.current_page == "register" { "nav-link active" } else { "nav-link" }) { "Register" }
             }
         }
     }

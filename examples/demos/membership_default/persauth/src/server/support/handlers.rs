@@ -96,7 +96,7 @@ pub async fn list_messages(
     let messages = list_messages_db(&state.pool, status, limit, offset)
         .await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
-    let (_, new, _, _, _) = count_by_status_db(&state.pool)
+    let (total, _new, _read, _replied, _closed) = count_by_status_db(&state.pool)
         .await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
@@ -104,7 +104,7 @@ pub async fn list_messages(
         success: true,
         message: "Messages retrieved successfully".to_string(),
         messages: messages.into_iter().map(|m| m.to_response()).collect(),
-        total: new,
+        total,
     }))
 }
 
