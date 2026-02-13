@@ -148,12 +148,37 @@ jobs:
                       target/
                   key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
 
-            # Setup Chrome and ChromeDriver for E2E tests
-            - name: Setup Chrome and ChromeDriver
+            # Setup Chrome for E2E tests
+            - name: Setup Chrome
               uses: browser-actions/setup-chrome@v1
               with:
                   chrome-version: stable
-                  install-chromedriver: true
+                  install-chromedriver: false
+
+            - name: Install matching ChromeDriver
+              run: |
+                  set -euo pipefail
+                  CHROME_VERSION="$(google-chrome --product-version)"
+                  CHROME_MAJOR="${CHROME_VERSION%%.*}"
+                  DRIVER_VERSION="$(curl -fsSL "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_MAJOR}")"
+
+                  mkdir -p "$HOME/.local/bin"
+                  curl -fsSL \
+                      -o /tmp/chromedriver-linux64.zip \
+                      "https://storage.googleapis.com/chrome-for-testing-public/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
+                  rm -rf /tmp/chromedriver-linux64
+                  unzip -qo /tmp/chromedriver-linux64.zip -d /tmp
+                  install -m 0755 /tmp/chromedriver-linux64/chromedriver "$HOME/.local/bin/chromedriver"
+                  echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+            - name: Verify Chrome and ChromeDriver major versions
+              run: |
+                  set -euo pipefail
+                  CHROME_MAJOR="$(google-chrome --product-version | cut -d. -f1)"
+                  DRIVER_MAJOR="$(chromedriver --version | awk '{print $2}' | cut -d. -f1)"
+                  echo "Chrome major: ${CHROME_MAJOR}"
+                  echo "ChromeDriver major: ${DRIVER_MAJOR}"
+                  test "${CHROME_MAJOR}" = "${DRIVER_MAJOR}"
 
             - run: rustup target add wasm32-unknown-unknown
 
