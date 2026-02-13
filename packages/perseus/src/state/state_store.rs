@@ -402,7 +402,7 @@ impl PageStateStore {
     /// double-preload things).
     pub fn cycle_route_preloaded(&self, keep_urls: &[&PathMaybeWithLocale]) {
         let mut preloaded = self.route_preloaded.borrow_mut();
-        preloaded.retain(|url, _| keep_urls.iter().any(|keep_url| *keep_url == url));
+        preloaded.retain(|url, _| keep_urls.contains(&url));
     }
     /// Forces the store to keep a certain page. This will prevent it from being
     /// evicted from the store, regardless of how many other pages are

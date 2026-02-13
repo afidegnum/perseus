@@ -96,10 +96,7 @@ impl Reactor {
                 &popup_error_root,
             );
         });
-        // SAFETY: We're outside the child scope, so we can safely dispose
-        unsafe {
-            disposer.dispose();
-        }
+        disposer.dispose();
     }
     /// Creates the infrastructure necessary to handle a panic, and then
     /// displays an error created by the user's [`ErrorViews`]. This
@@ -129,7 +126,7 @@ impl Reactor {
         let msg = panic_info.to_string();
         // The whole app is about to implode, we are not keeping this scope
         // around
-        create_root(|| {
+        let disposer = create_root(|| {
             let (_head, body) = handler(
                 ClientError::Panic(msg),
                 ErrorContext::Static,
@@ -144,5 +141,6 @@ impl Reactor {
                 true, // Browser-side-only error, so force a full render
             );
         });
+        disposer.dispose();
     }
 }

@@ -435,8 +435,7 @@ impl fmt::Display for HtmlShell {
                 format!("<head{}>{}", attrs, head_start)
             })
             .to_string();
-        let shell_with_head = shell_with_head
-            .replace("</head>", &format!("{}</head>", head_end));
+        let shell_with_head = shell_with_head.replace("</head>", &format!("{}</head>", head_end));
 
         let body_start = self.before_content.join("\n");
         let body_end = self.after_content.join("\n");
@@ -448,14 +447,13 @@ impl fmt::Display for HtmlShell {
                 format!("<body{}>{}", attrs, body_start)
             })
             .to_string();
-        let shell_with_body = shell_with_body
-            .replace(
-                "</body>",
-                &format!(
-                    "{}<div id=\"__perseus_popup_error\"></div></body>",
-                    body_end
-                ),
-            );
+        let shell_with_body = shell_with_body.replace(
+            "</body>",
+            &format!(
+                "{}<div id=\"__perseus_popup_error\"></div></body>",
+                body_end
+            ),
+        );
 
         // The user MUST have a `<div>` with the root ID.
         // We use regex to match the div regardless of additional attributes (like hydration keys

@@ -1,6 +1,4 @@
 use crate::path::PathWithoutLocale;
-#[cfg(engine)]
-use sycamore::reactive::create_child_scope;
 use sycamore::web::View;
 
 use super::Capsule;
@@ -178,9 +176,6 @@ impl<P: Clone + 'static> Capsule<P> {
     /// The internal engine-side logic for widgets.
     #[cfg(engine)]
     fn engine_widget(&self, path: PathWithoutLocale, props: P) -> View {
-        use std::sync::Arc;
-
-        use crate::error_views::ErrorViews;
         use crate::errors::{ClientError, ServerError, StoreError};
         use crate::path::PathMaybeWithLocale;
         use crate::reactor::{Reactor, RenderMode, RenderStatus};

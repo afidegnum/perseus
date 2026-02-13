@@ -1,8 +1,8 @@
 [package]
-name = "perseus-membership"
+name = "perseus-membership-actix"
 version = "0.1.0"
 edition = "2021"
-description = "Perseus Membership System with User Registration and Authentication"
+description = "Perseus Membership System with User Registration and Authentication in actix"
 
 [dependencies]
 perseus = { path = "../../../../packages/perseus" }
@@ -12,7 +12,7 @@ serde_json = "1"
 
 # Server dependencies (non-WASM only)
 [target.'cfg(engine)'.dependencies]
-perseus-axum = { path = "../../../../packages/perseus-axum" }
+perseus-actix = { path = "../../../../packages/perseus-actix" }
 axum = { version = "0.8", features = ["macros", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.6", features = ["cors", "fs"] }

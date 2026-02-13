@@ -18,8 +18,6 @@ use crate::Request;
 #[cfg(engine)]
 use http::HeaderMap;
 use sycamore::prelude::*;
-#[cfg(engine)]
-use sycamore::web::SsrNode;
 
 impl TemplateInner {
     /// Executes the user-given function that renders the template on the
@@ -105,7 +103,6 @@ impl TemplateInner {
                 let (view, _) = (self.view)(preload_info, state, path)?;
                 Ok::<_, ClientError>(view)
             })?;
-            std::mem::forget(root_handle);
             Ok(view)
         }
     }
@@ -141,7 +138,6 @@ impl TemplateInner {
             Ok::<_, ServerError>(prerendered)
         })?;
 
-        std::mem::forget(root_handle);
         Ok(prerendered)
     }
     /// Gets the list of templates that should be prerendered for at build-time.
@@ -277,7 +273,6 @@ impl TemplateInner {
             }
         })?;
 
-        std::mem::forget(root_handle);
         Ok(headers)
     }
 }

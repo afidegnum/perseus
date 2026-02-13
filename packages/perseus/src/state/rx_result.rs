@@ -84,7 +84,7 @@ where
     E: Serialize + DeserializeOwned + Clone + 'static,
 {
     fn freeze(&self) -> String {
-        let self_clone = Self(self.0.clone());
+        let self_clone = Self(self.0);
         let unrx = self_clone.make_unrx();
         serde_json::to_string(&unrx).unwrap()
     }

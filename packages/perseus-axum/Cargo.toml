@@ -34,3 +34,6 @@ dflt-server-with-compression = ["tower-http/compression-gzip", "tokio"]
 [package.metadata.docs.rs]
 rustc-args = ["--cfg=engine"]
 rustdoc-args = ["--cfg=engine"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(engine)'] }

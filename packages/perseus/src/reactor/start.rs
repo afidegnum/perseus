@@ -4,7 +4,6 @@ use crate::{
     errors::ClientError,
     reactor::InitialView,
     router::{PageDisposer, PerseusRoute, RouteVerdict, RouterLoadState},
-    template::BrowserNodeType,
     utils::{checkpoint, render_or_hydrate, replace_head},
 };
 use std::rc::Rc;
@@ -208,16 +207,14 @@ impl Reactor {
         // get access to a router or the like. Every time `popup_err_view` is
         // updated, this will update too.
         let popup_view_version = self.popup_error_view_version;
-        let popup_view_holder = self.popup_error_view_holder.clone();
+        let reactor_for_popup_view = self.clone();
         render_or_hydrate(
             view! {
                 (move || {
                     // Track the version counter - this triggers re-runs when
                     // set_popup_error_view() is called
                     popup_view_version.track();
-                    // Take the view from the holder - this doesn't trigger any
-                    // reactive updates since the holder isn't a signal
-                    popup_view_holder.borrow_mut().take().unwrap_or_else(View::new)
+                    reactor_for_popup_view.take_popup_error_view()
                 })
             },
             popup_error_root,
@@ -249,12 +246,7 @@ impl Reactor {
         // should proceed.
         let (starting_view, is_err) = match self.get_initial_view() {
             Ok(InitialView::View(view, disposer)) => {
-                // SAFETY: There's nothing in there right now, and we know that for sure
-                // because it's the initial load (asserted above). Also, we're in the app-level
-                // scope.
-                unsafe {
-                    page_disposer.update(disposer);
-                }
+                page_disposer.update(disposer);
 
                 // Note that the router state has already been correctly set to `Loaded`
                 (view, false)
@@ -339,10 +331,7 @@ impl Reactor {
                     match reactor.get_subsequent_view(verdict.clone()).await {
                         Ok((view, disposer)) => {
                             reactor.set_current_view(view);
-                            // SAFETY: We're outside the old page's scope
-                            unsafe {
-                                page_disposer_2.update(disposer);
-                            }
+                            page_disposer_2.update(disposer);
                         }
                         Err(err) => {
                             // Any errors should be gracefully reported, and their disposers
@@ -352,13 +341,9 @@ impl Reactor {
                             let disposer_fn: Box<dyn FnOnce()> =
                                 Box::new(move || root_handle.dispose());
                             if pagewide {
-                                unsafe {
-                                    page_disposer_2.update(disposer_fn);
-                                }
+                                page_disposer_2.update(disposer_fn);
                             } else {
-                                unsafe {
-                                    popup_error_disposer_2.clone().update(disposer_fn);
-                                }
+                                popup_error_disposer_2.clone().update(disposer_fn);
                             }
                         }
                     };
@@ -408,8 +393,7 @@ impl Reactor {
                                     match reactor.get_subsequent_view(verdict).await {
                                         Ok((view, disposer)) => {
                                             reactor.set_current_view(view);
-                                            // SAFETY: We're outside the old page's scope
-                                            unsafe { page_disposer_2.update(disposer); }
+                                            page_disposer_2.update(disposer);
                                         }
                                         Err(err) => {
                                             // Any errors should be gracefully reported, and their disposers
@@ -418,9 +402,9 @@ impl Reactor {
                                             // Create disposer for cleanup
                                             let disposer_fn: Box<dyn FnOnce()> = Box::new(move || root_handle.dispose());
                                             if pagewide {
-                                                unsafe { page_disposer_2.update(disposer_fn); }
+                                                page_disposer_2.update(disposer_fn);
                                             } else {
-                                                unsafe { popup_error_disposer_2.clone().update(disposer_fn); }
+                                                popup_error_disposer_2.clone().update(disposer_fn);
                                             }
                                         }
                                     };
@@ -432,15 +416,13 @@ impl Reactor {
                         // We track the version counter (not the view holder itself) to avoid
                         // triggering spurious re-runs when we take the view out.
                         let current_view_version = reactor_for_view.current_view_version;
-                        let current_view_holder = reactor_for_view.current_view_holder.clone();
+                        let reactor_for_current_view = reactor_for_view.clone();
                         view! {
                             (move || {
                                 // Track the version counter - this triggers re-runs when
                                 // set_current_view() is called during navigation
                                 current_view_version.track();
-                                // Take the view from the holder - this doesn't trigger any
-                                // reactive updates since the holder isn't a signal
-                                current_view_holder.borrow_mut().take().unwrap_or_else(View::new)
+                                reactor_for_current_view.take_current_view()
                             })
                         }
                     }

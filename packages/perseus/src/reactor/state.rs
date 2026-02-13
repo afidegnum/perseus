@@ -10,7 +10,6 @@ use crate::{
     state::{Freeze, FrozenApp, ThawPrefs},
 };
 use serde::{de::DeserializeOwned, Serialize};
-use sycamore::prelude::*;
 
 #[cfg(client)]
 use sycamore::reactive::use_global_scope;

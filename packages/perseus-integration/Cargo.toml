@@ -28,3 +28,6 @@ actix-web = ["perseus-actix-web"]
 warp = ["perseus-warp"]
 axum = ["perseus-axum"]
 rocket = ["perseus-rocket"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(engine)'] }

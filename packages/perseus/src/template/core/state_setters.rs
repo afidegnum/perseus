@@ -12,8 +12,6 @@ use http::HeaderMap;
 use serde::{de::DeserializeOwned, Serialize};
 use sycamore::prelude::*;
 use sycamore::reactive::create_child_scope;
-#[cfg(engine)]
-use sycamore::web::SsrNode;
 
 impl TemplateInner {
     // The view functions below are shadowed for widgets, and therefore these

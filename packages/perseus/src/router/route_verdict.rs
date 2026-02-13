@@ -1,6 +1,5 @@
 use crate::path::PathWithoutLocale;
 use crate::template::{Entity, EntityMap};
-use sycamore::prelude::*;
 
 /// Information about a route, which, combined with error pages and a
 /// client-side translations manager, allows the initialization of the app shell
@@ -71,7 +70,7 @@ impl RouteInfo {
     /// This will panic if the entity name held by `Self` is not in the given
     /// map, which is only a concern if you `Self` didn't come from
     /// `match_route`.
-    pub(crate) fn into_full(self, entities: &EntityMap) -> FullRouteInfo {
+    pub(crate) fn into_full(self, entities: &EntityMap) -> FullRouteInfo<'_> {
         let entity = entities.get(&self.entity_name).expect("conversion to full route info failed, given entities did not contain given entity name");
         FullRouteInfo {
             path: self.path,
@@ -114,7 +113,7 @@ impl RouteVerdict {
     /// This will panic if the entity name held by `Self` is not in the given
     /// map, which is only a concern if you `Self` didn't come from
     /// `match_route` (this only applies when `Self` is `Self::Found(..)`).
-    pub(crate) fn into_full(self, entities: &EntityMap) -> FullRouteVerdict {
+    pub(crate) fn into_full(self, entities: &EntityMap) -> FullRouteVerdict<'_> {
         match self {
             Self::Found(info) => FullRouteVerdict::Found(info.into_full(entities)),
             Self::NotFound { locale } => FullRouteVerdict::NotFound { locale },

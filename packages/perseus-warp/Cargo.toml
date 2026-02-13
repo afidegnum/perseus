@@ -31,3 +31,6 @@ dflt-server-with-compression = ["warp/compression"]
 [package.metadata.docs.rs]
 rustc-args = ["--cfg=engine"]
 rustdoc-args = ["--cfg=engine"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(engine)'] }

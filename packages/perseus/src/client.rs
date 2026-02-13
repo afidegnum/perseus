@@ -147,9 +147,9 @@ pub type ClientReturn = Result<(), JsValue>;
 /// unwinding panics, and there could be a user function for catching panics.
 fn dispatch_loaded(running: bool, panic: bool) {
     let document = web_sys::window().unwrap().document().unwrap();
-    let mut ev_init = CustomEventInit::new();
+    let ev_init = CustomEventInit::new();
     // We provide whether or not the app is actually running to this
-    ev_init.detail(&if panic { JsValue::NULL } else { running.into() });
+    ev_init.set_detail(&if panic { JsValue::NULL } else { running.into() });
     let ev = CustomEvent::new_with_event_init_dict("__perseus_loaded", &ev_init).unwrap();
     document.dispatch_event(&ev).unwrap();
 }

@@ -74,7 +74,7 @@ pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
     // Convert Meta to NestedMeta for darling
     let nested_meta: Vec<_> = attr_args
         .into_iter()
-        .map(|meta| darling::ast::NestedMeta::Meta(meta))
+        .map(darling::ast::NestedMeta::Meta)
         .collect();
     // Parse macro arguments with `darling`
     let args = match test::TestArgs::from_list(&nested_meta) {

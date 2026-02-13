@@ -100,7 +100,7 @@ where
     T::Rx: MakeUnrx<Unrx = T> + Freeze + Clone,
 {
     fn freeze(&self) -> String {
-        let unrx = Self(self.0.clone()).make_unrx();
+        let unrx = Self(self.0).make_unrx();
         // This should never panic, because we're dealing with a vector
         serde_json::to_string(&unrx).unwrap()
     }

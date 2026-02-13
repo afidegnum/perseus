@@ -19,7 +19,7 @@ use super::fn_types::*;
 use super::TemplateFn;
 #[cfg(engine)]
 use crate::utils::ComputedDuration;
-use sycamore::reactive::{create_child_scope, NodeHandle};
+use sycamore::reactive::create_child_scope;
 use sycamore::web::View;
 
 /// A single template in an app. Each template is comprised of a Sycamore view,
