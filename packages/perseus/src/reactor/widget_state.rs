@@ -40,8 +40,8 @@ impl Reactor {
     // HRTB explanation: 'a = 'app, but the compiler hates that.
     #[allow(clippy::type_complexity)]
     #[allow(clippy::too_many_arguments)] // Internal function
-    pub(crate) fn get_widget_view<'a, S, F, P: Clone + 'static>(
-        &'a self,
+    pub(crate) fn get_widget_view<S, F, P: Clone + 'static>(
+        &self,
         path: PathMaybeWithLocale,
         #[allow(unused_variables)] caller_path: PathMaybeWithLocale,
         #[cfg(any(client, doc))] capsule_name: String,
@@ -72,7 +72,7 @@ impl Reactor {
             // ergonomically with the rest of the code, so we just break out entirely
             #[cfg(any(client, doc))]
             None => {
-                return {
+                {
                     // Use version counter pattern to avoid Rc::try_unwrap issues
                     let view_holder = Rc::new(RefCell::new(Option::<View>::None));
                     let view_version = create_signal(0u64);
@@ -160,7 +160,7 @@ impl Reactor {
                         },
                         disposer,
                     ))
-                };
+                }
             }
             // On the engine-side (or when no cfg flag is set), this is impossible
             #[cfg(not(any(client, doc)))]
@@ -178,8 +178,8 @@ impl Reactor {
     /// `.get_widget_view()` for widgets that use reactive state.
     #[allow(clippy::type_complexity)]
     #[allow(clippy::too_many_arguments)] // Internal function
-    pub(crate) fn get_unreactive_widget_view<'a, F, S, P: Clone + 'static>(
-        &'a self,
+    pub(crate) fn get_unreactive_widget_view<F, S, P: Clone + 'static>(
+        &self,
         path: PathMaybeWithLocale,
         #[allow(unused_variables)] caller_path: PathMaybeWithLocale,
         #[cfg(any(client, doc))] capsule_name: String,
@@ -208,7 +208,7 @@ impl Reactor {
             // ergonomically with the rest of the code, so we just break out entirely
             #[cfg(any(client, doc))]
             None => {
-                return {
+                {
                     // Use version counter pattern to avoid Rc::try_unwrap issues
                     let view_holder = Rc::new(RefCell::new(Option::<View>::None));
                     let view_version = create_signal(0u64);
@@ -295,7 +295,7 @@ impl Reactor {
                         },
                         disposer,
                     ))
-                };
+                }
             }
             // On the engine-side (or when no cfg flag is set), this is impossible
             #[cfg(not(any(client, doc)))]

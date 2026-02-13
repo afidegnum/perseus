@@ -20,8 +20,9 @@ fn deploy_works() -> Result<(), Box<dyn std::error::Error>> {
 
     // Deploy the app without first specifying our own error views (this should
     // fail)
-    let mut cmd = Command::cargo_bin("perseus")?;
-    cmd.env("TEST_EXAMPLE", dir.path()).arg("deploy");
+    let mut cmd = crate::utils::perseus_cmd(&dir);
+
+    cmd.arg("deploy");
     cmd.assert().failure();
 
     // Now add the development default error views for simplicity
@@ -35,8 +36,9 @@ fn deploy_works() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::write(main_rs, contents_with_dbg).unwrap();
 
     // Deploy the app now, and it should work
-    let mut cmd = Command::cargo_bin("perseus")?;
-    cmd.env("TEST_EXAMPLE", dir.path()).arg("deploy");
+    let mut cmd = crate::utils::perseus_cmd(&dir);
+
+    cmd.arg("deploy");
     cmd.assert().success();
 
     // Assert on all the artifacts, based on the code in the `init` example

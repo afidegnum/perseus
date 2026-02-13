@@ -1,6 +1,6 @@
-use crate::{errors::*, reactor::Reactor};
+use crate::errors::*;
 #[cfg(engine)]
-use crate::{i18n::Translator, reactor::RenderMode, state::TemplateState};
+use crate::{i18n::Translator, reactor::Reactor, reactor::RenderMode, state::TemplateState};
 use fmterr::fmt_err;
 use serde::{Deserialize, Serialize};
 #[cfg(any(client, doc))]
@@ -136,7 +136,7 @@ impl ErrorViews {
         Self::new(|err, _, pos| {
             match err {
                 // Special case for 404 due to its frequency
-                ClientError::ServerError { status, .. } if status == 404 => (
+                ClientError::ServerError { status: 404, .. } => (
                     view! {
                         title { "Page not found" }
                     },
@@ -380,7 +380,7 @@ impl ErrorViews {
     /// Invokes the user's handling function, producing head/body views for the
     /// given error. From the given scope, this will determine the
     /// conditions under which the error can be rendered.
-    pub(crate) fn handle<'a>(&self, err: ClientError, pos: ErrorPosition) -> (String, View) {
+    pub(crate) fn handle(&self, err: ClientError, pos: ErrorPosition) -> (String, View) {
         // Check if we have a reactor by checking for the boolean flag
         let reactor_exists = try_use_context::<bool>().unwrap_or(false);
         // From the given scope, we can perfectly determine the capabilities this error
@@ -397,9 +397,6 @@ impl ErrorViews {
         // On the client, we can't use render_to_string (SSR-only in Sycamore 0.9.2)
         // Instead, we stringify the head view using the DOM
         let head_str = {
-            use wasm_bindgen::JsCast;
-            use web_sys::Element;
-
             // Create a temporary container to render the head view
             let container = web_sys::window()
                 .unwrap()

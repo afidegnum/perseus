@@ -1,4 +1,4 @@
-use rexie::{Direction, Error as RexieError, ObjectStore, Rexie, TransactionMode};
+use rexie::{Error as RexieError, ObjectStore, Rexie, TransactionMode};
 use std::rc::Rc;
 use thiserror::Error;
 use wasm_bindgen::JsValue;
@@ -108,7 +108,7 @@ impl IdbFrozenStateStore {
             .get_all(None, Some(1))
             .await
             .map_err(|err| IdbError::GetError { source: err })?;
-        let frozen_state = match frozen_states.get(0) {
+        let frozen_state = match frozen_states.first() {
             Some(value) => value, // New API: just the value
             None => return Ok(None),
         };

@@ -106,8 +106,8 @@ impl Tools {
             let lf_spinner = cfg_spinner(ProgressBar::new_spinner(), &lf_msg);
             let (_stdout, _stderr, exit_code) = run_stage(
                 vec![&format!(
-                    "{} generate-lockfile",
-                    global_opts.cargo_engine_path
+                    "{} generate-lockfile {}",
+                    global_opts.cargo_engine_path, global_opts.cargo_engine_args
                 )],
                 &workspace_root,
                 &lf_spinner,
@@ -472,7 +472,7 @@ impl Tool {
         // Try to get the GITHUB_TOKEN from the environment for authenticated requests
         // (higher rate limits in CI)
         let client = Client::new();
-        let mut request = client.get(&format!(
+        let mut request = client.get(format!(
             "https://api.github.com/repos/{}/releases/latest",
             self.gh_repo
         ));

@@ -26,7 +26,7 @@ use crate::{
     i18n::Translator,
     state::{GlobalState, GlobalStateType, PageStateStore, TemplateState},
 };
-use sycamore::prelude::{provide_context, use_context};
+use sycamore::prelude::provide_context;
 
 // --- Engine-side imports ---
 
@@ -303,7 +303,7 @@ impl Reactor {
         self.current_view_holder
             .borrow_mut()
             .take()
-            .unwrap_or_else(View::new)
+            .unwrap_or_default()
     }
 
     /// Sets the popup error view and triggers a reactive update.
@@ -322,7 +322,7 @@ impl Reactor {
         self.popup_error_view_holder
             .borrow_mut()
             .take()
-            .unwrap_or_else(View::new)
+            .unwrap_or_default()
     }
 }
 

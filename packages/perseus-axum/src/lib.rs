@@ -124,7 +124,7 @@ pub async fn get_router_with_api<M: MutableStore + 'static, T: TranslationsManag
                         ))
                     }
                 };
-                ApiResponse(turbine.get_initial_consts(&locale).await)
+                ApiResponse(turbine.get_initial_consts(locale).await)
             }),
         )
         .route(

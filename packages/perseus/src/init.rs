@@ -24,11 +24,9 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 #[cfg(any(client, doc))]
 use std::rc::Rc;
-use std::{any::TypeId, sync::Arc};
+use std::sync::Arc;
 use std::{collections::HashMap, panic::PanicHookInfo};
 use sycamore::prelude::{component, view};
-#[cfg(engine)]
-use sycamore::web::render_to_string;
 use sycamore::web::{GlobalProps, HtmlGlobalAttributes, View};
 
 /// The default index view, because some simple apps won't need anything fancy
@@ -189,7 +187,7 @@ impl<M: MutableStore, T: TranslationsManager> std::fmt::Debug for PerseusAppBase
             .field("index_view", &self.index_view);
         #[cfg(any(client, doc))]
         {
-            return debug
+            debug
                 .field(
                     "panic_handler",
                     &self
@@ -197,18 +195,18 @@ impl<M: MutableStore, T: TranslationsManager> std::fmt::Debug for PerseusAppBase
                         .as_ref()
                         .map(|_| "dyn Fn(&PanicHookInfo) + Send + Sync + 'static"),
                 )
-                .finish_non_exhaustive();
+                .finish_non_exhaustive()
         }
         #[cfg(engine)]
         {
-            return debug
+            debug
                 .field("global_state_creator", &self.global_state_creator)
                 .field("mutable_store", &self.mutable_store)
                 .field("translations_manager", &self.translations_manager)
                 .field("static_dir", &self.static_dir)
                 .field("static_aliases", &self.static_aliases)
                 .field("immutable_store", &self.immutable_store)
-                .finish_non_exhaustive();
+                .finish_non_exhaustive()
         }
     }
 }
@@ -699,6 +697,7 @@ impl<M: MutableStore, T: TranslationsManager> PerseusAppBase<M, T> {
     /// static string, which won't be hydrated.
     // The lifetime of the provided function doesn't need to be static, because we
     // render using it and then we're done with it
+    #[allow(unused_mut)]
     pub fn index_view<'a>(mut self, f: impl Fn() -> View + 'a) -> Self {
         // We need to render the index view without any hydration IDs (which would break
         // the HTML shell's interpolation mechanisms)

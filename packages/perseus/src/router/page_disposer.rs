@@ -1,7 +1,7 @@
 use std::cell::RefCell;
-use std::mem;
 use std::rc::Rc;
-use sycamore::prelude::*;
+
+type Disposer = Box<dyn FnOnce()>;
 
 /// This stores the disposers for user pages so that they can be safely
 /// unmounted when the view changes.
@@ -17,7 +17,7 @@ pub(crate) struct PageDisposer {
     /// There is no way to get this underlying disposer function, it can only be
     /// set. Hence, we prevent there ever being multiple references to the
     /// underlying `Signal`.
-    disposer: Rc<RefCell<Option<Box<dyn FnOnce()>>>>,
+    disposer: Rc<RefCell<Option<Disposer>>>,
 }
 impl PageDisposer {
     /// Updates the underlying data structure to hold the given disposer, taking
@@ -26,7 +26,7 @@ impl PageDisposer {
     /// # Safety
     /// This must not be called inside a scope in which the previous disposer
     /// was created.
-    pub(crate) fn update(&self, new_disposer: Box<dyn FnOnce()>) {
+    pub(crate) fn update(&self, new_disposer: Disposer) {
         // Dispose of any old disposers
         if let Some(old_disposer) = self.disposer.replace(Some(new_disposer)) {
             // SAFETY: This function is documented to be only called when we're not inside

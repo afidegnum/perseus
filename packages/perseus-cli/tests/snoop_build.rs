@@ -4,7 +4,6 @@ use assert_fs::{
     TempDir,
 };
 use predicates::prelude::*;
-use std::process::Command;
 
 use crate::utils::init_test;
 
@@ -19,10 +18,9 @@ fn snoop_build_produces_artifacts() -> Result<(), Box<dyn std::error::Error>> {
     init_test(&dir)?;
 
     // Build the app
-    let mut cmd = Command::cargo_bin("perseus")?;
-    cmd.env("TEST_EXAMPLE", dir.path())
-        .arg("snoop")
-        .arg("build");
+    let mut cmd = crate::utils::perseus_cmd(&dir);
+
+    cmd.arg("snoop").arg("build");
     cmd.assert().success().stderr(predicate::str::contains(
         "Running `dist/target_engine/debug/my-app`",
     ));
@@ -70,10 +68,9 @@ fn snoop_build_prints_dbg() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::write(index_template, contents_with_dbg).unwrap();
 
     // Build the app
-    let mut cmd = Command::cargo_bin("perseus")?;
-    cmd.env("TEST_EXAMPLE", dir.path())
-        .arg("snoop")
-        .arg("build");
+    let mut cmd = crate::utils::perseus_cmd(&dir);
+
+    cmd.arg("snoop").arg("build");
     cmd.assert()
         .success()
         .stderr(predicate::str::contains("This is a test."));

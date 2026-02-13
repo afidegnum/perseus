@@ -45,7 +45,7 @@ impl RouterState {
     /// This is designed for internal use only. End users should get a reference
     /// with `.get_load_state()`.
     pub(crate) fn get_load_state_rc(&self) -> Signal<RouterLoadState> {
-        self.load_state.clone() // TODO Better approach than cloning here?
+        self.load_state
     }
     /// Sets the load state of the router.
     ///

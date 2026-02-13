@@ -198,7 +198,7 @@ pub async fn perseus_routes<M: MutableStore + 'static, T: TranslationsManager + 
     let localized_initial_consts = warp::path!(".perseus" / "initial_consts" / String).then(
         move |locale: String| async move {
             let locale = locale.strip_suffix(".js").unwrap_or(&locale);
-            ApiResponse(turbine.get_initial_consts(&locale).await)
+            ApiResponse(turbine.get_initial_consts(locale).await)
         },
     );
     let unlocalized_initial_consts = warp::path!(".perseus" / "initial_consts.js")
