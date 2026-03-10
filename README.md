@@ -84,31 +84,6 @@ We appreciate all kinds of contributions, check out our [contributing guidelines
 
 You can also chat about Perseus on [our channel on Sycamore's Discord server](https://discord.com/invite/GNqWYWNTdp).
 
-## Portfolio Submodule
-
-The `portfolio/` directory is maintained as a separate private Git repository and is mounted here as
-a Git submodule.
-
-- Private repo: `git@github.com:afidegnum/perseus-portfolio.git`
-- Local path in this repo: `portfolio/`
-
-If you have access to the private repository, initialize or update it with:
-
-```bash
-git submodule update --init --recursive portfolio
-```
-
-When working on the portfolio workspace itself, treat it as its own repository:
-
-```bash
-git -C portfolio status
-git -C portfolio pull
-git -C portfolio push
-```
-
-The root Perseus workspace excludes `portfolio/`, and the portfolio workspace uses local path
-references back into this repository when it is mounted here as a submodule.
-
 Perseus wouldn't be posible without the hard work of all these wonderful people!
 
 <a href="https://github.com/framesurge/perseus/graphs/contributors">
