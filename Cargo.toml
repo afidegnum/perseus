@@ -6,6 +6,7 @@ members = [
     "examples/website/*",
     "website",
 ]
+exclude = ["portfolio"]
 resolver = "2"
 
 [profile.release]
