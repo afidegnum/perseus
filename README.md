@@ -3,8 +3,10 @@
 [![Book](https://img.shields.io/badge/Book-framesurge.sh-informational?style=for-the-badge)](https://framesurge.sh/perseus/en-US/docs)
 [![API Docs](https://img.shields.io/docsrs/perseus?label=API%20Docs&style=for-the-badge)](https://docs.rs/perseus)
 [![Crate Page](https://img.shields.io/crates/v/perseus?style=for-the-badge)](https://crates.io/crates/perseus)
-[![Top Language](https://img.shields.io/github/languages/top/framesurge/perseus?style=for-the-badge)]()
+[![Top Language](https://img.shields.io/github/languages/top/afidegnum/perseus?style=for-the-badge)]()
 [![Discord Chat](https://img.shields.io/discord/820400041332179004?label=Discord&style=for-the-badge)](https://discord.gg/PgwPn7dKEk)
+
+> **Note:** This is a maintained fork of the original [`framesurge/perseus`](https://github.com/framesurge/perseus) repository, which is no longer actively maintained. Development continues here at v0.5.0 (Sycamore 0.9.2).
 
 Perseus is a blazingly fast frontend web development framework built in Rust with support for generating page state at build-time, request-time, incrementally, or whatever you'd like! It supports reactivity using [Sycamore](https://github.com/sycamore-rs/sycamore), and builds on it to provide a fully-fledged framework for developing modern apps.
 
@@ -20,7 +22,7 @@ Perseus is a blazingly fast frontend web development framework built in Rust wit
 
 ## What's it like?
 
-Here's a taste of Perseus (see [the _tiny_ example](https://github.com/framesurge/perseus/tree/main/examples/comprehensive/tiny) for more):
+Here's a taste of Perseus (see [the _tiny_ example](https://github.com/afidegnum/perseus/tree/main/examples/comprehensive/tiny) for more):
 
 ```rust,ignore
 use perseus::prelude::*;
@@ -80,16 +82,16 @@ There is a sore lack of Rust frameworks for frontend development that support mo
 
 ## Contributing
 
-We appreciate all kinds of contributions, check out our [contributing guidelines](https://github.com/framesurge/perseus/blob/main/CONTRIBUTING.md) for more information! Also, please be sure to follow our [code of conduct](https://github.com/framesurge/perseus/blob/main/CODE_OF_CONDUCT.md).
+We appreciate all kinds of contributions, check out our [contributing guidelines](https://github.com/afidegnum/perseus/blob/main/CONTRIBUTING.md) for more information! Also, please be sure to follow our [code of conduct](https://github.com/afidegnum/perseus/blob/main/CODE_OF_CONDUCT.md).
 
 You can also chat about Perseus on [our channel on Sycamore's Discord server](https://discord.com/invite/GNqWYWNTdp).
 
 Perseus wouldn't be posible without the hard work of all these wonderful people!
 
-<a href="https://github.com/framesurge/perseus/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=framesurge/perseus" />
+<a href="https://github.com/afidegnum/perseus/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=afidegnum/perseus" />
 </a>
 
 ## License
 
-See [`LICENSE`](https://github.com/framesurge/perseus/blob/main/LICENSE).
+See [`LICENSE`](https://github.com/afidegnum/perseus/blob/main/LICENSE).
