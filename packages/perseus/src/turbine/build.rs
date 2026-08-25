@@ -358,8 +358,9 @@ impl<M: MutableStore, T: TranslationsManager> Turbine<M, T> {
 
             build_state
         } else {
-            // There's nothing we can do with any other sort of template at build-time
-            return Ok(HashMap::new());
+            // Stateless templates still need their prerendered HTML/head artifacts generated at
+            // build/serve time, even if they don't persist any page state.
+            TemplateState::empty()
         };
 
         // For templates (*not* capsules), we'll render the full content (with
