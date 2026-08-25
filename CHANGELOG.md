@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [0.5.0](https://github.com/framesurge/perseus/compare/v0.4.3...v0.5.0) (2025-01-XX)
+## [0.5.0](https://github.com/afidegnum/perseus/compare/v0.4.3...v0.5.0) (2026-08-25)
 
 ### ⚠ BREAKING CHANGES
 
@@ -53,6 +53,7 @@ let reactor = Reactor::<BrowserNodeType>::from_cx();
   ```
 * **docs:** Add complete 0.5.x documentation with Sycamore 0.9.2 syntax ([e0938b0](https://github.com/framesurge/perseus/commit/e0938b06))
 * **docs:** Add comprehensive migration guide from 0.4.x to 0.5.x
+* **examples:** Add persauth membership demo app with auth, RBAC, categories, and mail
 
 ### Bug Fixes
 
@@ -65,6 +66,7 @@ let reactor = Reactor::<BrowserNodeType>::from_cx();
 * **hydration:** Fix hydration issues with new Sycamore API ([f40321f](https://github.com/framesurge/perseus/commit/f40321f3))
 * **context:** Ensure reactor context accessible in child scopes ([2cd25c5](https://github.com/framesurge/perseus/commit/2cd25c54))
 * **compat:** Update PanicInfo to PanicHookInfo for Rust 1.82+ ([661d4ce](https://github.com/framesurge/perseus/commit/661d4ce9))
+* **turbine:** Generate page/head artifacts for stateless templates so direct loads work
 
 ### Code Refactoring
 
@@ -72,6 +74,7 @@ let reactor = Reactor::<BrowserNodeType>::from_cx();
 * Update website components for Sycamore 0.9.2 compatibility
 * Remove deprecated `Scope` parameter from all view functions
 * Replace `<G: Html>` generics with concrete `View` type
+* Remove accidental `examples/target/` build artifacts from history and ignore all `target/` directories
 
 ### Dependencies
 
