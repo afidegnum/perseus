@@ -2,6 +2,8 @@
 /target_engine
 /target_engine_clientdoc
 /target_wasm
+target/
+**/target/
 pkg/
 .tribble/
 .idea/
@@ -12,4 +14,5 @@ dist/
 AGENTS.md
 doc/
 *.sh
+!examples/demos/render_portfolio_component_ecosystem_pdf.sh
 *.backup
